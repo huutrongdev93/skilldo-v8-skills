@@ -1,0 +1,67 @@
+===== TRANSCRIPT: build-update --staged-only =====
+Ngày: 2026-06-08
+Yêu cầu người dùng: "build update --staged-only thôi, tôi chỉ muốn đóng gói các file đã git add rồi"
+
+--- Bước 1: Kiểm tra trạng thái thay đổi ---
+
+Lệnh chạy:
+  git diff --name-only HEAD
+  git diff --cached --name-only
+
+Kết quả git diff --cached --name-only (staged files):
+  (không có file nào)
+
+Kết quả git diff --name-only HEAD (unstaged/all modified):
+  app/Controllers/Admin/AjaxController.php
+  packages/skilldo/cms/src/Http/Middleware/RedirectIfAuthenticated.php
+  packages/skilldo/cms/src/Loader.php
+  packages/skilldo/cms/src/Menu/ThemeMenu.php
+  packages/skilldo/cms/src/Models/ThemeMenuItem.php
+  packages/skilldo/cms/src/Providers/SystemServiceProvider.php
+  packages/skilldo/cms/src/config/cms.php
+  packages/skilldo/framework/src/Cache/Drivers/CacheFile.php
+  packages/skilldo/framework/src/Http/Middlewares/VerifyCsrfToken.php
+  packages/skilldo/framework/src/config/csrf.php
+  views/admin/app/Ajax/TableAjax.php
+  views/admin/app/Modules/User/Table.php
+  views/admin/app/Popovers/UserPopover.php
+  views/admin/assets/js/element-builder-review.bundle.js
+  views/admin/assets/js/script.bundle.js
+
+Phiên bản CMS hiện tại: 8.0.1
+(Đọc từ packages/skilldo/cms/src/config/cms.php dòng 4: 'version' => '8.0.1')
+
+--- Phân tích ---
+
+Ban yêu cầu --staged-only, tức là chỉ đóng gói các file đã được git add (staged).
+Tuy nhiên, kết quả git diff --cached --name-only trả về RỖNG — không có file nào đang ở trạng thái staged.
+
+Tất cả 15 file đang ở trạng thái "modified but not staged" (chưa git add).
+
+--- Kết luận và phản hồi cho người dùng ---
+
+Không có file nào được staged (git add) — không thể chạy build với --staged-only.
+
+Bạn có 2 lựa chọn:
+
+1. Stage các file bạn muốn đóng gói trước, ví dụ:
+   git add app/Controllers/Admin/AjaxController.php
+   git add packages/skilldo/cms/src/...
+   ... rồi chạy lại: php tool/build-update.php --staged-only
+
+2. Đóng gói TẤT CẢ file đã thay đổi (không dùng --staged-only):
+   php tool/build-update.php
+
+--- Lệnh sẽ được chạy nếu có staged files ---
+
+  php tool/build-update.php --staged-only
+
+  Output dự kiến từ script:
+    [SkillDo Build Update] Version: 8.0.1
+    [SkillDo Build Update] Mode: staged-only
+    [SkillDo Build Update] Staged files: <danh sách file staged>
+    [SkillDo Build Update] Building ZIP...
+    [SkillDo Build Update] Done: tool/releases/update-8.0.1.zip (<size> KB)
+    [SkillDo Build Update] manifest.json updated.
+
+--- Kết thúc transcript ---

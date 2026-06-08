@@ -1,0 +1,22 @@
+{
+  "eval_id": 3,
+  "run": "with_skill",
+  "expectations": [
+    {
+      "text": "Cung cấp URL http://localhost/tool/build-update-ui.php",
+      "passed": true,
+      "evidence": "URL 'http://localhost/tool/build-update-ui.php' is clearly provided"
+    },
+    {
+      "text": "Không chạy php tool/build-update.php vì người dùng muốn dùng web UI",
+      "passed": true,
+      "evidence": "No php CLI command was run. Response is purely informational with the URL and brief UI instructions."
+    },
+    {
+      "text": "Mô tả ngắn gọn cách dùng web UI (nhấn Build / Download ZIP)",
+      "passed": true,
+      "evidence": "Describes: danh sách file bên trái, nút Build, nút Download ZIP — concise and accurate"
+    }
+  ],
+  "pass_rate": 1.0
+}

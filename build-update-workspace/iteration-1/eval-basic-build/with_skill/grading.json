@@ -1,0 +1,27 @@
+{
+  "eval_id": 1,
+  "run": "with_skill",
+  "expectations": [
+    {
+      "text": "Chạy git diff --name-only HEAD (hoặc tương đương) để kiểm tra file thay đổi trước khi build",
+      "passed": true,
+      "evidence": "Response clearly shows 'git diff --name-only HEAD' and lists 15 changed files grouped by package"
+    },
+    {
+      "text": "Thực thi lệnh php tool/build-update.php",
+      "passed": true,
+      "evidence": "Bước 2 hiển thị lệnh 'php tool/build-update.php' sẽ được thực thi"
+    },
+    {
+      "text": "Báo đường dẫn ZIP tại tool/releases/ trong kết quả",
+      "passed": true,
+      "evidence": "Clearly shows: 'tool/releases/update-8.0.1.zip'"
+    },
+    {
+      "text": "Đề cập path remap: packages/skilldo/ → vendor/skilldo/ trong ZIP",
+      "passed": true,
+      "evidence": "Table shows remap info for both cms and framework: packages/skilldo/cms/ → vendor/skilldo/cms/ and packages/skilldo/framework/ → vendor/skilldo/framework/"
+    }
+  ],
+  "pass_rate": 1.0
+}

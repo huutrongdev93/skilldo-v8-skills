@@ -1,0 +1,15 @@
+{
+  "eval_id": 2,
+  "eval_name": "eval-staged-only-flag",
+  "prompt": "build update --staged-only thôi, tôi chỉ muốn đóng gói các file đã git add rồi",
+  "assertions": [
+    {
+      "text": "Chạy php tool/build-update.php với flag --staged-only",
+      "name": "truyền-flag-staged-only"
+    },
+    {
+      "text": "Không được bỏ qua flag --staged-only — phải có trong lệnh thực thi",
+      "name": "không-bỏ-flag"
+    }
+  ]
+}

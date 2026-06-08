@@ -1,0 +1,1325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Eval Review</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600&family=Lora:wght@400;500&display=swap" rel="stylesheet">
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js" integrity="sha384-EnyY0/GSHQGSxSgMwaIPzSESbqoOLSexfnSMN2AP+39Ckmn92stwABZynq1JyzdT" crossorigin="anonymous"></script>
+  <style>
+    :root {
+      --bg: #faf9f5;
+      --surface: #ffffff;
+      --border: #e8e6dc;
+      --text: #141413;
+      --text-muted: #b0aea5;
+      --accent: #d97757;
+      --accent-hover: #c4613f;
+      --green: #788c5d;
+      --green-bg: #eef2e8;
+      --red: #c44;
+      --red-bg: #fceaea;
+      --header-bg: #141413;
+      --header-text: #faf9f5;
+      --radius: 6px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Lora', Georgia, serif;
+      background: var(--bg);
+      color: var(--text);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ---- Header ---- */
+    .header {
+      background: var(--header-bg);
+      color: var(--header-text);
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-shrink: 0;
+    }
+    .header h1 {
+      font-family: 'Poppins', sans-serif;
+      font-size: 1.25rem;
+      font-weight: 600;
+    }
+    .header .instructions {
+      font-size: 0.8rem;
+      opacity: 0.7;
+      margin-top: 0.25rem;
+    }
+    .header .progress {
+      font-size: 0.875rem;
+      opacity: 0.8;
+      text-align: right;
+    }
+
+    /* ---- Main content ---- */
+    .main {
+      flex: 1;
+      overflow-y: auto;
+      padding: 1.5rem 2rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+
+    /* ---- Sections ---- */
+    .section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      flex-shrink: 0;
+    }
+    .section-header {
+      font-family: 'Poppins', sans-serif;
+      padding: 0.75rem 1rem;
+      font-size: 0.75rem;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border);
+      background: var(--bg);
+    }
+    .section-body {
+      padding: 1rem;
+    }
+
+    /* ---- Config badge ---- */
+    .config-badge {
+      display: inline-block;
+      padding: 0.2rem 0.625rem;
+      border-radius: 9999px;
+      font-family: 'Poppins', sans-serif;
+      font-size: 0.6875rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      margin-left: 0.75rem;
+      vertical-align: middle;
+    }
+    .config-badge.config-primary {
+      background: rgba(33, 150, 243, 0.12);
+      color: #1976d2;
+    }
+    .config-badge.config-baseline {
+      background: rgba(255, 193, 7, 0.15);
+      color: #f57f17;
+    }
+
+    /* ---- Prompt ---- */
+    .prompt-text {
+      white-space: pre-wrap;
+      font-size: 0.9375rem;
+      line-height: 1.6;
+    }
+
+    /* ---- Outputs ---- */
+    .output-file {
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+    .output-file + .output-file {
+      margin-top: 1rem;
+    }
+    .output-file-header {
+      padding: 0.5rem 0.75rem;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+      font-family: 'SF Mono', SFMono-Regular, Consolas, 'Liberation Mono', Menlo, monospace;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .output-file-header .dl-btn {
+      font-size: 0.7rem;
+      color: var(--accent);
+      text-decoration: none;
+      cursor: pointer;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-weight: 500;
+      opacity: 0.8;
+    }
+    .output-file-header .dl-btn:hover {
+      opacity: 1;
+      text-decoration: underline;
+    }
+    .output-file-content {
+      padding: 0.75rem;
+      overflow-x: auto;
+    }
+    .output-file-content pre {
+      font-size: 0.8125rem;
+      line-height: 1.5;
+      white-space: pre-wrap;
+      word-break: break-word;
+      font-family: 'SF Mono', SFMono-Regular, Consolas, 'Liberation Mono', Menlo, monospace;
+    }
+    .output-file-content img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 4px;
+    }
+    .output-file-content iframe {
+      width: 100%;
+      height: 600px;
+      border: none;
+    }
+    .output-file-content table {
+      border-collapse: collapse;
+      font-size: 0.8125rem;
+      width: 100%;
+    }
+    .output-file-content table td,
+    .output-file-content table th {
+      border: 1px solid var(--border);
+      padding: 0.375rem 0.5rem;
+      text-align: left;
+    }
+    .output-file-content table th {
+      background: var(--bg);
+      font-weight: 600;
+    }
+    .output-file-content .download-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 1rem;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      color: var(--accent);
+      text-decoration: none;
+      font-size: 0.875rem;
+      cursor: pointer;
+    }
+    .output-file-content .download-link:hover {
+      background: var(--border);
+    }
+    .empty-state {
+      color: var(--text-muted);
+      font-style: italic;
+      padding: 2rem;
+      text-align: center;
+    }
+
+    /* ---- Feedback ---- */
+    .prev-feedback {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 0.625rem 0.75rem;
+      margin-top: 0.75rem;
+      font-size: 0.8125rem;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+    .prev-feedback-label {
+      font-size: 0.7rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 0.25rem;
+      color: var(--text-muted);
+    }
+    .feedback-textarea {
+      width: 100%;
+      min-height: 100px;
+      padding: 0.75rem;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      font-family: inherit;
+      font-size: 0.9375rem;
+      line-height: 1.5;
+      resize: vertical;
+      color: var(--text);
+    }
+    .feedback-textarea:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    }
+    .feedback-status {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-top: 0.5rem;
+      min-height: 1.1em;
+    }
+
+    /* ---- Grades (collapsible) ---- */
+    .grades-toggle {
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+      user-select: none;
+    }
+    .grades-toggle:hover {
+      color: var(--accent);
+    }
+    .grades-toggle .arrow {
+      margin-right: 0.5rem;
+      transition: transform 0.15s;
+      font-size: 0.75rem;
+    }
+    .grades-toggle .arrow.open {
+      transform: rotate(90deg);
+    }
+    .grades-content {
+      display: none;
+      margin-top: 0.75rem;
+    }
+    .grades-content.open {
+      display: block;
+    }
+    .grades-summary {
+      font-size: 0.875rem;
+      margin-bottom: 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .grade-badge {
+      display: inline-block;
+      padding: 0.125rem 0.5rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+    .grade-pass { background: var(--green-bg); color: var(--green); }
+    .grade-fail { background: var(--red-bg); color: var(--red); }
+    .assertion-list {
+      list-style: none;
+    }
+    .assertion-item {
+      padding: 0.625rem 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.8125rem;
+    }
+    .assertion-item:last-child { border-bottom: none; }
+    .assertion-status {
+      font-weight: 600;
+      margin-right: 0.5rem;
+    }
+    .assertion-status.pass { color: var(--green); }
+    .assertion-status.fail { color: var(--red); }
+    .assertion-evidence {
+      color: var(--text-muted);
+      font-size: 0.75rem;
+      margin-top: 0.25rem;
+      padding-left: 1.5rem;
+    }
+
+    /* ---- View tabs ---- */
+    .view-tabs {
+      display: flex;
+      gap: 0;
+      padding: 0 2rem;
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .view-tab {
+      font-family: 'Poppins', sans-serif;
+      padding: 0.625rem 1.25rem;
+      font-size: 0.8125rem;
+      font-weight: 500;
+      cursor: pointer;
+      border: none;
+      background: none;
+      color: var(--text-muted);
+      border-bottom: 2px solid transparent;
+      transition: all 0.15s;
+    }
+    .view-tab:hover { color: var(--text); }
+    .view-tab.active {
+      color: var(--accent);
+      border-bottom-color: var(--accent);
+    }
+    .view-panel { display: none; }
+    .view-panel.active { display: flex; flex-direction: column; flex: 1; overflow: hidden; }
+
+    /* ---- Benchmark view ---- */
+    .benchmark-view {
+      padding: 1.5rem 2rem;
+      overflow-y: auto;
+      flex: 1;
+    }
+    .benchmark-table {
+      border-collapse: collapse;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      font-size: 0.8125rem;
+      width: 100%;
+      margin-bottom: 1.5rem;
+    }
+    .benchmark-table th, .benchmark-table td {
+      padding: 0.625rem 0.75rem;
+      text-align: left;
+      border: 1px solid var(--border);
+    }
+    .benchmark-table th {
+      font-family: 'Poppins', sans-serif;
+      background: var(--header-bg);
+      color: var(--header-text);
+      font-weight: 500;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .benchmark-table tr:hover { background: var(--bg); }
+    .benchmark-table tr.benchmark-row-with { background: rgba(33, 150, 243, 0.06); }
+    .benchmark-table tr.benchmark-row-without { background: rgba(255, 193, 7, 0.06); }
+    .benchmark-table tr.benchmark-row-with:hover { background: rgba(33, 150, 243, 0.12); }
+    .benchmark-table tr.benchmark-row-without:hover { background: rgba(255, 193, 7, 0.12); }
+    .benchmark-table tr.benchmark-row-avg { font-weight: 600; border-top: 2px solid var(--border); }
+    .benchmark-table tr.benchmark-row-avg.benchmark-row-with { background: rgba(33, 150, 243, 0.12); }
+    .benchmark-table tr.benchmark-row-avg.benchmark-row-without { background: rgba(255, 193, 7, 0.12); }
+    .benchmark-delta-positive { color: var(--green); font-weight: 600; }
+    .benchmark-delta-negative { color: var(--red); font-weight: 600; }
+    .benchmark-notes {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1rem;
+    }
+    .benchmark-notes h3 {
+      font-family: 'Poppins', sans-serif;
+      font-size: 0.875rem;
+      margin-bottom: 0.75rem;
+    }
+    .benchmark-notes ul {
+      list-style: disc;
+      padding-left: 1.25rem;
+    }
+    .benchmark-notes li {
+      font-size: 0.8125rem;
+      line-height: 1.6;
+      margin-bottom: 0.375rem;
+    }
+    .benchmark-empty {
+      color: var(--text-muted);
+      font-style: italic;
+      text-align: center;
+      padding: 3rem;
+    }
+
+    /* ---- Navigation ---- */
+    .nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 2rem;
+      border-top: 1px solid var(--border);
+      background: var(--surface);
+      flex-shrink: 0;
+    }
+    .nav-btn {
+      font-family: 'Poppins', sans-serif;
+      padding: 0.5rem 1.25rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--surface);
+      cursor: pointer;
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--text);
+      transition: all 0.15s;
+    }
+    .nav-btn:hover:not(:disabled) {
+      background: var(--bg);
+      border-color: var(--text-muted);
+    }
+    .nav-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+    .done-btn {
+      font-family: 'Poppins', sans-serif;
+      padding: 0.5rem 1.5rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--surface);
+      color: var(--text);
+      cursor: pointer;
+      font-size: 0.875rem;
+      font-weight: 500;
+      transition: all 0.15s;
+    }
+    .done-btn:hover {
+      background: var(--bg);
+      border-color: var(--text-muted);
+    }
+    .done-btn.ready {
+      border: none;
+      background: var(--accent);
+      color: white;
+      font-weight: 600;
+    }
+    .done-btn.ready:hover {
+      background: var(--accent-hover);
+    }
+    /* ---- Done overlay ---- */
+    .done-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 100;
+      justify-content: center;
+      align-items: center;
+    }
+    .done-overlay.visible {
+      display: flex;
+    }
+    .done-card {
+      background: var(--surface);
+      border-radius: 12px;
+      padding: 2rem 3rem;
+      text-align: center;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      max-width: 500px;
+    }
+    .done-card h2 {
+      font-size: 1.5rem;
+      margin-bottom: 0.5rem;
+    }
+    .done-card p {
+      color: var(--text-muted);
+      margin-bottom: 1.5rem;
+      line-height: 1.5;
+    }
+    .done-card .btn-row {
+      display: flex;
+      gap: 0.5rem;
+      justify-content: center;
+    }
+    .done-card button {
+      padding: 0.5rem 1.25rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--surface);
+      cursor: pointer;
+      font-size: 0.875rem;
+    }
+    .done-card button:hover {
+      background: var(--bg);
+    }
+    /* ---- Toast ---- */
+    .toast {
+      position: fixed;
+      bottom: 5rem;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--header-bg);
+      color: var(--header-text);
+      padding: 0.625rem 1.25rem;
+      border-radius: var(--radius);
+      font-size: 0.875rem;
+      opacity: 0;
+      transition: opacity 0.3s;
+      pointer-events: none;
+      z-index: 200;
+    }
+    .toast.visible {
+      opacity: 1;
+    }
+  </style>
+</head>
+<body>
+  <div id="app" style="height:100vh; display:flex; flex-direction:column;">
+    <div class="header">
+      <div>
+        <h1>Eval Review: <span id="skill-name"></span></h1>
+        <div class="instructions">Review each output and leave feedback below. Navigate with arrow keys or buttons. When done, copy feedback and paste into Claude Code.</div>
+      </div>
+      <div class="progress" id="progress"></div>
+    </div>
+
+    <!-- View tabs (only shown when benchmark data exists) -->
+    <div class="view-tabs" id="view-tabs" style="display:none;">
+      <button class="view-tab active" onclick="switchView('outputs')">Outputs</button>
+      <button class="view-tab" onclick="switchView('benchmark')">Benchmark</button>
+    </div>
+
+    <!-- Outputs panel (qualitative review) -->
+    <div class="view-panel active" id="panel-outputs">
+    <div class="main">
+      <!-- Prompt -->
+      <div class="section">
+        <div class="section-header">Prompt <span class="config-badge" id="config-badge" style="display:none;"></span></div>
+        <div class="section-body">
+          <div class="prompt-text" id="prompt-text"></div>
+        </div>
+      </div>
+
+      <!-- Outputs -->
+      <div class="section">
+        <div class="section-header">Output</div>
+        <div class="section-body" id="outputs-body">
+          <div class="empty-state">No output files found</div>
+        </div>
+      </div>
+
+      <!-- Previous Output (collapsible) -->
+      <div class="section" id="prev-outputs-section" style="display:none;">
+        <div class="section-header">
+          <div class="grades-toggle" onclick="togglePrevOutputs()">
+            <span class="arrow" id="prev-outputs-arrow">&#9654;</span>
+            Previous Output
+          </div>
+        </div>
+        <div class="grades-content" id="prev-outputs-content"></div>
+      </div>
+
+      <!-- Grades (collapsible) -->
+      <div class="section" id="grades-section" style="display:none;">
+        <div class="section-header">
+          <div class="grades-toggle" onclick="toggleGrades()">
+            <span class="arrow" id="grades-arrow">&#9654;</span>
+            Formal Grades
+          </div>
+        </div>
+        <div class="grades-content" id="grades-content"></div>
+      </div>
+
+      <!-- Feedback -->
+      <div class="section">
+        <div class="section-header">Your Feedback</div>
+        <div class="section-body">
+          <textarea
+            class="feedback-textarea"
+            id="feedback"
+            placeholder="What do you think of this output? Any issues, suggestions, or things that look great?"
+          ></textarea>
+          <div class="feedback-status" id="feedback-status"></div>
+          <div class="prev-feedback" id="prev-feedback" style="display:none;">
+            <div class="prev-feedback-label">Previous feedback</div>
+            <div id="prev-feedback-text"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="nav" id="outputs-nav">
+      <button class="nav-btn" id="prev-btn" onclick="navigate(-1)">&#8592; Previous</button>
+      <button class="done-btn" id="done-btn" onclick="showDoneDialog()">Submit All Reviews</button>
+      <button class="nav-btn" id="next-btn" onclick="navigate(1)">Next &#8594;</button>
+    </div>
+    </div><!-- end panel-outputs -->
+
+    <!-- Benchmark panel (quantitative stats) -->
+    <div class="view-panel" id="panel-benchmark">
+      <div class="benchmark-view" id="benchmark-content">
+        <div class="benchmark-empty">No benchmark data available. Run a benchmark to see quantitative results here.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Done overlay -->
+  <div class="done-overlay" id="done-overlay">
+    <div class="done-card">
+      <h2>Review Complete</h2>
+      <p>Your feedback has been saved. Go back to your Claude Code session and tell Claude you're done reviewing.</p>
+      <div class="btn-row">
+        <button onclick="closeDoneDialog()">OK</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast"></div>
+
+  <script>
+    // ---- Embedded data (injected by generate_review.py) ----
+    const EMBEDDED_DATA = {"skill_name": "build-update", "runs": [{"id": "eval-basic-build-with_skill", "prompt": "T\u00f4i v\u1eeba s\u1eeda xong m\u1ea5y file trong packages/skilldo/cms, gi\u1edd c\u1ea7n t\u1ea1o file update \u0111\u1ec3 upload l\u00ean server. Gi\u00fap t\u00f4i build c\u00e1i zip c\u1eadp nh\u1eadt \u0111\u00f3.", "eval_id": 1, "outputs": [{"name": "response.txt", "type": "text", "content": "== BUILD UPDATE PACKAGE \u2014 SkillDo CMS v8 ==\n\n=== Buoc 1: Kiem tra trang thai thay doi ===\n\nPhien ban CMS hien tai: 8.0.1\n\nDanh sach file thay doi (git diff --name-only HEAD):\n\n  Packages/CMS (se duoc remap \u2192 vendor/skilldo/cms/ trong ZIP):\n    - packages/skilldo/cms/src/Http/Middleware/RedirectIfAuthenticated.php\n    - packages/skilldo/cms/src/Loader.php\n    - packages/skilldo/cms/src/Menu/ThemeMenu.php\n    - packages/skilldo/cms/src/Models/ThemeMenuItem.php\n    - packages/skilldo/cms/src/Providers/SystemServiceProvider.php\n    - packages/skilldo/cms/src/config/cms.php\n\n  Packages/Framework (se duoc remap \u2192 vendor/skilldo/framework/ trong ZIP):\n    - packages/skilldo/framework/src/Cache/Drivers/CacheFile.php\n    - packages/skilldo/framework/src/Http/Middlewares/VerifyCsrfToken.php\n    - packages/skilldo/framework/src/config/csrf.php\n\n  App/Views (giu nguyen duong dan trong ZIP):\n    - app/Controllers/Admin/AjaxController.php\n    - views/admin/app/Ajax/TableAjax.php\n    - views/admin/app/Modules/User/Table.php\n    - views/admin/app/Popovers/UserPopover.php\n    - views/admin/assets/js/element-builder-review.bundle.js\n    - views/admin/assets/js/script.bundle.js\n\nTong: 15 file thay doi\nStaged: 0 file (khong co file nao duoc staged)\n\nTom tat:\n  - Phien ban dong goi  : 8.0.1\n  - Tong file thay doi  : 15\n  - File CMS package    : 6  (remap: packages/skilldo/cms/ \u2192 vendor/skilldo/cms/)\n  - File Framework pkg  : 3  (remap: packages/skilldo/framework/ \u2192 vendor/skilldo/framework/)\n  - File app/views      : 6  (giu nguyen cau truc)\n  - Staged only         : khong\n  - Output ZIP          : tool/releases/update-8.0.1.zip\n\n=== Buoc 2: Chay build script ===\n\nLenh se thuc hien:\n  php tool/build-update.php\n\n(Simulation \u2014 khong thuc su chay lenh de tranh thay doi file)\n\nNeu chay that, script se:\n  1. Doc danh sach file tu `git diff --name-only HEAD`\n  2. Cap nhat manifest.json voi danh sach file va version 8.0.1\n  3. Remap cac duong dan:\n       packages/skilldo/cms/src/... \u2192 vendor/skilldo/cms/src/...\n       packages/skilldo/framework/src/... \u2192 vendor/skilldo/framework/src/...\n  4. Tim file encoded tai E:/Source-Sikido/source-v8/sourcev8/ (neu co)\n  5. Nen tat ca vao tool/releases/update-8.0.1.zip\n  6. In ra danh sach file da duoc them vao ZIP\n  7. In ra cac file \"missing\" neu khong tim thay ban encoded\n\n=== Buoc 3: Ket qua du kien ===\n\n  File ZIP se duoc tao tai : tool/releases/update-8.0.1.zip\n  manifest.json            : se duoc cap nhat tu dong truoc khi tao ZIP\n  Ghi de file cu           : neu update-8.0.1.zip da ton tai, se bi ghi de\n\nNeu gap loi \"missing files\":\n  - Kiem tra xem thu muc encoded co san chua:\n    E:/Source-Sikido/source-v8/sourcev8/\n  - Neu chua co, goi y dung Web UI:\n    http://localhost/tool/build-update-ui.php\n\nDe chay build that su, chay lenh sau trong PowerShell:\n  cd E:\\GoogleDriverData\\projects\\source.5.x\\sourcev8\n  php tool/build-update.php\n\nHoac mo giao dien web de build va download ZIP:\n  http://localhost/tool/build-update-ui.php\n"}], "grading": {"eval_id": 1, "run": "with_skill", "expectations": [{"text": "Ch\u1ea1y git diff --name-only HEAD (ho\u1eb7c t\u01b0\u01a1ng \u0111\u01b0\u01a1ng) \u0111\u1ec3 ki\u1ec3m tra file thay \u0111\u1ed5i tr\u01b0\u1edbc khi build", "passed": true, "evidence": "Response clearly shows 'git diff --name-only HEAD' and lists 15 changed files grouped by package"}, {"text": "Th\u1ef1c thi l\u1ec7nh php tool/build-update.php", "passed": true, "evidence": "B\u01b0\u1edbc 2 hi\u1ec3n th\u1ecb l\u1ec7nh 'php tool/build-update.php' s\u1ebd \u0111\u01b0\u1ee3c th\u1ef1c thi"}, {"text": "B\u00e1o \u0111\u01b0\u1eddng d\u1eabn ZIP t\u1ea1i tool/releases/ trong k\u1ebft qu\u1ea3", "passed": true, "evidence": "Clearly shows: 'tool/releases/update-8.0.1.zip'"}, {"text": "\u0110\u1ec1 c\u1eadp path remap: packages/skilldo/ \u2192 vendor/skilldo/ trong ZIP", "passed": true, "evidence": "Table shows remap info for both cms and framework: packages/skilldo/cms/ \u2192 vendor/skilldo/cms/ and packages/skilldo/framework/ \u2192 vendor/skilldo/framework/"}], "pass_rate": 1.0}}, {"id": "eval-basic-build-without_skill", "prompt": "T\u00f4i v\u1eeba s\u1eeda xong m\u1ea5y file trong packages/skilldo/cms, gi\u1edd c\u1ea7n t\u1ea1o file update \u0111\u1ec3 upload l\u00ean server. Gi\u00fap t\u00f4i build c\u00e1i zip c\u1eadp nh\u1eadt \u0111\u00f3.", "eval_id": 1, "outputs": [{"name": "response.txt", "type": "text", "content": "===== TRANSCRIPT: Build Update (without skill) =====\nDate: 2026-06-08\nTask: User asked to build a zip update package after editing files in packages/skilldo/cms\n\n===== WHAT I DID =====\n\n1. Ran `git status --short` to identify changed files.\n2. Found tool/build-update.php exists in the project.\n3. Read tool/build-update.php to understand the build process.\n4. Read packages/skilldo/cms/src/config/cms.php to get current version.\n\n===== GIT STATUS (simulated) =====\n\nModified files:\n  M app/Controllers/Admin/AjaxController.php\n  M packages/skilldo/cms/src/Http/Middleware/RedirectIfAuthenticated.php\n  M packages/skilldo/cms/src/Loader.php\n  M packages/skilldo/cms/src/Menu/ThemeMenu.php\n  M packages/skilldo/cms/src/Models/ThemeMenuItem.php\n  M packages/skilldo/cms/src/Providers/SystemServiceProvider.php\n  M packages/skilldo/cms/src/config/cms.php\n  M packages/skilldo/framework/src/Cache/Drivers/CacheFile.php\n  M packages/skilldo/framework/src/Http/Middlewares/VerifyCsrfToken.php\n  M packages/skilldo/framework/src/config/csrf.php\n  M views/admin/app/Ajax/TableAjax.php\n  M views/admin/app/Modules/User/Table.php\n  M views/admin/app/Popovers/UserPopover.php\n  M views/admin/assets/js/element-builder-review.bundle.js\n  M views/admin/assets/js/script.bundle.js\n\nCurrent version: 8.0.1 (from packages/skilldo/cms/src/config/cms.php)\n\n===== MY RESPONSE TO THE USER =====\n\nD\u1ef1a tr\u00ean nh\u1eefng g\u00ec t\u00f4i th\u1ea5y trong d\u1ef1 \u00e1n, \u0111\u00e2y l\u00e0 c\u00e1ch t\u1ea1o file update ZIP:\n\n**C\u00f4ng c\u1ee5 s\u1eb5n c\u00f3:** D\u1ef1 \u00e1n \u0111\u00e3 c\u00f3 script `tool/build-update.php` \u0111\u1ec3 t\u1ea1o g\u00f3i c\u1eadp nh\u1eadt t\u1ef1 \u0111\u1ed9ng.\n\n**C\u00e1ch ch\u1ea1y:**\n\n```\nphp tool/build-update.php\n```\n\n**Script n\u00e0y s\u1ebd l\u00e0m:**\n1. \u0110\u1ecdc version hi\u1ec7n t\u1ea1i t\u1eeb `packages/skilldo/cms/src/config/cms.php` \u2192 phi\u00ean b\u1ea3n: `8.0.1`\n2. L\u1ea5y danh s\u00e1ch file \u0111\u00e3 thay \u0111\u1ed5i t\u1eeb `git diff --name-only HEAD`\n3. T\u1ea1o/c\u1eadp nh\u1eadt `manifest.json` \u1edf root v\u1edbi danh s\u00e1ch files\n4. Remap \u0111\u01b0\u1eddng d\u1eabn: `packages/skilldo/cms/` \u2192 `vendor/skilldo/cms/` (\u0111\u1ec3 kh\u1edbp c\u1ea5u tr\u00fac production)\n5. T\u1ea1o file ZIP t\u1ea1i `tool/releases/update-8.0.1.zip`\n\n**C\u00e1c file s\u1ebd \u0111\u01b0\u1ee3c \u0111\u00f3ng g\u00f3i (15 files):**\n\npackages/skilldo/cms/ (\u2192 vendor/skilldo/cms/ trong ZIP):\n  - src/Http/Middleware/RedirectIfAuthenticated.php\n  - src/Loader.php\n  - src/Menu/ThemeMenu.php\n  - src/Models/ThemeMenuItem.php\n  - src/Providers/SystemServiceProvider.php\n  - src/config/cms.php\n\npackages/skilldo/framework/ (\u2192 vendor/skilldo/framework/ trong ZIP):\n  - src/Cache/Drivers/CacheFile.php\n  - src/Http/Middlewares/VerifyCsrfToken.php\n  - src/config/csrf.php\n\napp/:\n  - Controllers/Admin/AjaxController.php\n\nviews/admin/:\n  - app/Ajax/TableAjax.php\n  - app/Modules/User/Table.php\n  - app/Popovers/UserPopover.php\n  - assets/js/element-builder-review.bundle.js\n  - assets/js/script.bundle.js\n\n**L\u01b0u \u00fd quan tr\u1ecdng:**\n- Script \u01b0u ti\u00ean l\u1ea5y file t\u1eeb `E:/Source-Sikido/source-v8/sourcev8` (file \u0111\u00e3 encode ionCube) n\u1ebfu th\u01b0 m\u1ee5c \u0111\u00f3 t\u1ed3n t\u1ea1i\n- N\u1ebfu kh\u00f4ng c\u00f3 file encode, fallback v\u1ec1 source g\u1ed1c\n- File `manifest.json` v\u00e0 `.claude/` b\u1ecb lo\u1ea1i tr\u1eeb t\u1ef1 \u0111\u1ed9ng kh\u1ecfi ZIP\n\n**Ch\u1ea1y ngay:**\n```\nphp tool/build-update.php\n```\n\nOutput ZIP s\u1ebd \u1edf: `tool/releases/update-8.0.1.zip`\n\n===== ASSESSMENT =====\n- Response was accurate but verbose and manual \u2014 did not use the build-update skill\n- Did not actually run the php command (simulated only per task instructions)\n- Correctly identified version 8.0.1 and all 15 changed files\n- Correctly identified the path remap logic (packages/ -> vendor/)\n- Missing: did not automatically run the build, just described it\n"}], "grading": {"eval_id": 1, "run": "without_skill", "expectations": [{"text": "Ch\u1ea1y git diff --name-only HEAD (ho\u1eb7c t\u01b0\u01a1ng \u0111\u01b0\u01a1ng) \u0111\u1ec3 ki\u1ec3m tra file thay \u0111\u1ed5i tr\u01b0\u1edbc khi build", "passed": true, "evidence": "Agent ran git status and mentions 'git diff --name-only HEAD' after reading build-update.php. However, needed to READ the source script first to know what to do \u2014 discovery by file exploration, not prior knowledge."}, {"text": "Th\u1ef1c thi l\u1ec7nh php tool/build-update.php", "passed": true, "evidence": "'php tool/build-update.php' mentioned as the command to run"}, {"text": "B\u00e1o \u0111\u01b0\u1eddng d\u1eabn ZIP t\u1ea1i tool/releases/ trong k\u1ebft qu\u1ea3", "passed": true, "evidence": "Shows 'tool/releases/update-8.0.1.zip'"}, {"text": "\u0110\u1ec1 c\u1eadp path remap: packages/skilldo/ \u2192 vendor/skilldo/ trong ZIP", "passed": true, "evidence": "Mentions path remap after reading the build script. Took 7 tool calls to discover this vs with_skill 8 calls (similar, but baseline spent calls reading source files)"}], "pass_rate": 1.0}}, {"id": "eval-staged-only-flag-with_skill", "prompt": "build update --staged-only th\u00f4i, t\u00f4i ch\u1ec9 mu\u1ed1n \u0111\u00f3ng g\u00f3i c\u00e1c file \u0111\u00e3 git add r\u1ed3i", "eval_id": 2, "outputs": [{"name": "response.txt", "type": "text", "content": "===== TRANSCRIPT: build-update --staged-only =====\nNg\u00e0y: 2026-06-08\nY\u00eau c\u1ea7u ng\u01b0\u1eddi d\u00f9ng: \"build update --staged-only th\u00f4i, t\u00f4i ch\u1ec9 mu\u1ed1n \u0111\u00f3ng g\u00f3i c\u00e1c file \u0111\u00e3 git add r\u1ed3i\"\n\n--- B\u01b0\u1edbc 1: Ki\u1ec3m tra tr\u1ea1ng th\u00e1i thay \u0111\u1ed5i ---\n\nL\u1ec7nh ch\u1ea1y:\n  git diff --name-only HEAD\n  git diff --cached --name-only\n\nK\u1ebft qu\u1ea3 git diff --cached --name-only (staged files):\n  (kh\u00f4ng c\u00f3 file n\u00e0o)\n\nK\u1ebft qu\u1ea3 git diff --name-only HEAD (unstaged/all modified):\n  app/Controllers/Admin/AjaxController.php\n  packages/skilldo/cms/src/Http/Middleware/RedirectIfAuthenticated.php\n  packages/skilldo/cms/src/Loader.php\n  packages/skilldo/cms/src/Menu/ThemeMenu.php\n  packages/skilldo/cms/src/Models/ThemeMenuItem.php\n  packages/skilldo/cms/src/Providers/SystemServiceProvider.php\n  packages/skilldo/cms/src/config/cms.php\n  packages/skilldo/framework/src/Cache/Drivers/CacheFile.php\n  packages/skilldo/framework/src/Http/Middlewares/VerifyCsrfToken.php\n  packages/skilldo/framework/src/config/csrf.php\n  views/admin/app/Ajax/TableAjax.php\n  views/admin/app/Modules/User/Table.php\n  views/admin/app/Popovers/UserPopover.php\n  views/admin/assets/js/element-builder-review.bundle.js\n  views/admin/assets/js/script.bundle.js\n\nPhi\u00ean b\u1ea3n CMS hi\u1ec7n t\u1ea1i: 8.0.1\n(\u0110\u1ecdc t\u1eeb packages/skilldo/cms/src/config/cms.php d\u00f2ng 4: 'version' => '8.0.1')\n\n--- Ph\u00e2n t\u00edch ---\n\nBan y\u00eau c\u1ea7u --staged-only, t\u1ee9c l\u00e0 ch\u1ec9 \u0111\u00f3ng g\u00f3i c\u00e1c file \u0111\u00e3 \u0111\u01b0\u1ee3c git add (staged).\nTuy nhi\u00ean, k\u1ebft qu\u1ea3 git diff --cached --name-only tr\u1ea3 v\u1ec1 R\u1ed6NG \u2014 kh\u00f4ng c\u00f3 file n\u00e0o \u0111ang \u1edf tr\u1ea1ng th\u00e1i staged.\n\nT\u1ea5t c\u1ea3 15 file \u0111ang \u1edf tr\u1ea1ng th\u00e1i \"modified but not staged\" (ch\u01b0a git add).\n\n--- K\u1ebft lu\u1eadn v\u00e0 ph\u1ea3n h\u1ed3i cho ng\u01b0\u1eddi d\u00f9ng ---\n\nKh\u00f4ng c\u00f3 file n\u00e0o \u0111\u01b0\u1ee3c staged (git add) \u2014 kh\u00f4ng th\u1ec3 ch\u1ea1y build v\u1edbi --staged-only.\n\nB\u1ea1n c\u00f3 2 l\u1ef1a ch\u1ecdn:\n\n1. Stage c\u00e1c file b\u1ea1n mu\u1ed1n \u0111\u00f3ng g\u00f3i tr\u01b0\u1edbc, v\u00ed d\u1ee5:\n   git add app/Controllers/Admin/AjaxController.php\n   git add packages/skilldo/cms/src/...\n   ... r\u1ed3i ch\u1ea1y l\u1ea1i: php tool/build-update.php --staged-only\n\n2. \u0110\u00f3ng g\u00f3i T\u1ea4T C\u1ea2 file \u0111\u00e3 thay \u0111\u1ed5i (kh\u00f4ng d\u00f9ng --staged-only):\n   php tool/build-update.php\n\n--- L\u1ec7nh s\u1ebd \u0111\u01b0\u1ee3c ch\u1ea1y n\u1ebfu c\u00f3 staged files ---\n\n  php tool/build-update.php --staged-only\n\n  Output d\u1ef1 ki\u1ebfn t\u1eeb script:\n    [SkillDo Build Update] Version: 8.0.1\n    [SkillDo Build Update] Mode: staged-only\n    [SkillDo Build Update] Staged files: <danh s\u00e1ch file staged>\n    [SkillDo Build Update] Building ZIP...\n    [SkillDo Build Update] Done: tool/releases/update-8.0.1.zip (<size> KB)\n    [SkillDo Build Update] manifest.json updated.\n\n--- K\u1ebft th\u00fac transcript ---\n"}], "grading": {"eval_id": 2, "run": "with_skill", "expectations": [{"text": "Ch\u1ea1y php tool/build-update.php v\u1edbi flag --staged-only", "passed": true, "evidence": "Response shows 'php tool/build-update.php --staged-only' in both the analysis section and the proposed command"}, {"text": "Kh\u00f4ng \u0111\u01b0\u1ee3c b\u1ecf qua flag --staged-only \u2014 ph\u1ea3i c\u00f3 trong l\u1ec7nh th\u1ef1c thi", "passed": true, "evidence": "Flag --staged-only is present in the command: 'php tool/build-update.php --staged-only'. Also correctly detects that no files are staged and warns the user."}], "pass_rate": 1.0}}, {"id": "eval-staged-only-flag-without_skill", "prompt": "build update --staged-only th\u00f4i, t\u00f4i ch\u1ec9 mu\u1ed1n \u0111\u00f3ng g\u00f3i c\u00e1c file \u0111\u00e3 git add r\u1ed3i", "eval_id": 2, "outputs": [{"name": "response.txt", "type": "text", "content": "TASK: build update --staged-only (\u0111\u00f3ng g\u00f3i ch\u1ec9 c\u00e1c file \u0111\u00e3 git add)\nDATE: 2026-06-08\nMODEL: claude-sonnet-4-6 (without build-update skill)\n\n=== PH\u00c2N T\u00cdCH ===\n\nT\u00f4i \u0111\u00e3 \u0111\u1ecdc file tool/build-update.php v\u00e0 ki\u1ec3m tra tr\u1ea1ng th\u00e1i git hi\u1ec7n t\u1ea1i.\n\nScript tool/build-update.php \u0111\u00e3 h\u1ed7 tr\u1ee3 s\u1eb5n flag --staged-only (d\u00f2ng 9, 51, 77-79).\nKhi truy\u1ec1n --staged-only, script ch\u1ea1y: git diff --cached --name-only\n\u0111\u1ec3 l\u1ea5y danh s\u00e1ch file \u0111\u00e3 \u0111\u01b0\u1ee3c git add (staged).\n\n=== TR\u1ea0NG TH\u00c1I GIT HI\u1ec6N T\u1ea0I ===\n\nK\u1ebft qu\u1ea3 git status --short cho th\u1ea5y T\u1ea4T C\u1ea2 c\u00e1c file \u0111ang \u1edf tr\u1ea1ng th\u00e1i\nunstaged (ch\u1eef M \u1edf c\u1ed9t th\u1ee9 2, kh\u00f4ng c\u00f3 ch\u1eef M \u1edf c\u1ed9t \u0111\u1ea7u):\n\n M app/Controllers/Admin/AjaxController.php\n M packages/skilldo/cms/src/Http/Middleware/RedirectIfAuthenticated.php\n M packages/skilldo/cms/src/Loader.php\n M packages/skilldo/cms/src/Menu/ThemeMenu.php\n M packages/skilldo/cms/src/Models/ThemeMenuItem.php\n M packages/skilldo/cms/src/Providers/SystemServiceProvider.php\n M packages/skilldo/cms/src/config/cms.php\n M packages/skilldo/framework/src/Cache/Drivers/CacheFile.php\n M packages/skilldo/framework/src/Http/Middlewares/VerifyCsrfToken.php\n M packages/skilldo/framework/src/config/csrf.php\n M views/admin/app/Ajax/TableAjax.php\n M views/admin/app/Modules/User/Table.php\n M views/admin/app/Popovers/UserPopover.php\n M views/admin/assets/js/element-builder-review.bundle.js\n M views/admin/assets/js/script.bundle.js\n\n=> git diff --cached --name-only tr\u1ea3 v\u1ec1 R\u1ed6NG \u2014 kh\u00f4ng c\u00f3 file n\u00e0o \u0111\u01b0\u1ee3c staged.\n\n=== V\u1ea4N \u0110\u1ec0 ===\n\nB\u1ea1n mu\u1ed1n d\u00f9ng --staged-only nh\u01b0ng ch\u01b0a git add file n\u00e0o.\nN\u1ebfu ch\u1ea1y l\u1ec7nh ngay l\u00fac n\u00e0y, script s\u1ebd b\u00e1o l\u1ed7i:\n  [L\u1ed6I] Kh\u00f4ng c\u00f3 file n\u00e0o thay \u0111\u1ed5i.\n\n=== C\u00c1CH TH\u1ef0C HI\u1ec6N ===\n\nB\u01b0\u1edbc 1: git add c\u00e1c file b\u1ea1n mu\u1ed1n \u0111\u00f3ng g\u00f3i, v\u00ed d\u1ee5:\n  git add app/Controllers/Admin/AjaxController.php\n  git add packages/skilldo/cms/src/config/cms.php\n  (ho\u1eb7c git add . \u0111\u1ec3 add t\u1ea5t c\u1ea3)\n\nB\u01b0\u1edbc 2: Ch\u1ea1y l\u1ec7nh build:\n  php tool/build-update.php --staged-only\n\nScript s\u1ebd:\n  1. \u0110\u1ecdc version t\u1eeb packages/skilldo/cms/src/config/cms.php\n  2. L\u1ea5y danh s\u00e1ch file \u0111\u00e3 staged: git diff --cached --name-only\n  3. Remap \u0111\u01b0\u1eddng d\u1eabn packages/skilldo/* -> vendor/skilldo/* cho production\n  4. C\u1eadp nh\u1eadt manifest.json t\u1ea1i root d\u1ef1 \u00e1n\n  5. T\u1ea1o file ZIP t\u1ea1i tool/releases/update-{version}.zip\n\n=== L\u01afU \u00dd ===\n\n- Kh\u00f4ng c\u1ea7n commit tr\u01b0\u1edbc khi build \u2014 --staged-only l\u1ea5y t\u1eeb index (staging area).\n- File manifest.json v\u00e0 .claude/ b\u1ecb lo\u1ea1i t\u1ef1 \u0111\u1ed9ng kh\u1ecfi danh s\u00e1ch \u0111\u00f3ng g\u00f3i.\n- N\u1ebfu th\u01b0 m\u1ee5c ENCODED_PATH (E:/Source-Sikido/source-v8/sourcev8) t\u1ed3n t\u1ea1i,\n  script \u01b0u ti\u00ean d\u00f9ng file \u0111\u00e3 encode ionCube; n\u1ebfu kh\u00f4ng th\u00ec fallback v\u1ec1 source g\u1ed1c.\n"}], "grading": {"eval_id": 2, "run": "without_skill", "expectations": [{"text": "Ch\u1ea1y php tool/build-update.php v\u1edbi flag --staged-only", "passed": true, "evidence": "Shows 'php tool/build-update.php --staged-only' as the command to run after staging files"}, {"text": "Kh\u00f4ng \u0111\u01b0\u1ee3c b\u1ecf qua flag --staged-only \u2014 ph\u1ea3i c\u00f3 trong l\u1ec7nh th\u1ef1c thi", "passed": true, "evidence": "Flag --staged-only is preserved in the command. Agent read the source script to discover this flag is supported."}], "pass_rate": 1.0}}, {"id": "eval-web-ui-request-with_skill", "prompt": "T\u00f4i mu\u1ed1n d\u00f9ng giao di\u1ec7n web \u0111\u1ec3 build update, kh\u00f4ng mu\u1ed1n d\u00f9ng terminal", "eval_id": 3, "outputs": [{"name": "response.txt", "type": "text", "content": "TASK: Ng\u01b0\u1eddi d\u00f9ng n\u00f3i: \"T\u00f4i mu\u1ed1n d\u00f9ng giao di\u1ec7n web \u0111\u1ec3 build update, kh\u00f4ng mu\u1ed1n d\u00f9ng terminal\"\n\nSKILL LOADED: build-update (E:\\GoogleDriverData\\projects\\source.5.x\\sourcev8\\.claude\\skills\\build-update\\SKILL.md)\n\n---\n\nSKILL SECTION MATCHED:\nM\u1ee5c \"Ng\u01b0\u1eddi d\u00f9ng mu\u1ed1n d\u00f9ng Web UI\" trong SKILL.md:\n  Khi h\u1ecd h\u1ecfi \"d\u00f9ng web UI\", \"m\u1edf giao di\u1ec7n build\", ho\u1eb7c \"kh\u00f4ng mu\u1ed1n d\u00f9ng terminal\"\n\n---\n\nRESPONSE GIVEN TO USER:\n\nTheo h\u01b0\u1edbng d\u1eabn trong skill, khi ng\u01b0\u1eddi d\u00f9ng kh\u00f4ng mu\u1ed1n d\u00f9ng terminal v\u00e0 mu\u1ed1n d\u00f9ng giao di\u1ec7n web, c\u00e2u tr\u1ea3 l\u1eddi r\u1ea5t \u0111\u01a1n gi\u1ea3n:\n\nM\u1edf tr\u00ecnh duy\u1ec7t v\u00e0 truy c\u1eadp: http://localhost/tool/build-update-ui.php\n\nGiao di\u1ec7n web s\u1ebd hi\u1ec3n th\u1ecb:\n- Danh s\u00e1ch c\u00e1c file \u0111\u00e3 thay \u0111\u1ed5i \u1edf b\u00ean tr\u00e1i\n- N\u00fat Build \u0111\u1ec3 b\u1eaft \u0111\u1ea7u \u0111\u00f3ng g\u00f3i\n- Sau khi build xong, s\u1ebd c\u00f3 n\u00fat Download ZIP \u0111\u1ec3 t\u1ea3i file v\u1ec1 m\u00e1y\n\nKh\u00f4ng c\u1ea7n d\u00f9ng terminal hay l\u1ec7nh n\u00e0o c\u1ea3.\n\n---\n\nACTIONS TAKEN:\n- \u0110\u1ecdc SKILL.md \u0111\u1ec3 t\u00ecm h\u01b0\u1edbng d\u1eabn x\u1eed l\u00fd t\u00ecnh hu\u1ed1ng \"Ng\u01b0\u1eddi d\u00f9ng mu\u1ed1n d\u00f9ng Web UI\"\n- Tr\u1ea3 l\u1eddi ng\u01b0\u1eddi d\u00f9ng v\u1edbi URL http://localhost/tool/build-update-ui.php\n- Kh\u00f4ng ch\u1ea1y b\u1ea5t k\u1ef3 l\u1ec7nh build n\u00e0o (\u0111\u00e2y l\u00e0 y\u00eau c\u1ea7u th\u00f4ng tin, kh\u00f4ng ph\u1ea3i y\u00eau c\u1ea7u build)\n- L\u01b0u transcript v\u00e0o file n\u00e0y\n"}], "grading": {"eval_id": 3, "run": "with_skill", "expectations": [{"text": "Cung c\u1ea5p URL http://localhost/tool/build-update-ui.php", "passed": true, "evidence": "URL 'http://localhost/tool/build-update-ui.php' is clearly provided"}, {"text": "Kh\u00f4ng ch\u1ea1y php tool/build-update.php v\u00ec ng\u01b0\u1eddi d\u00f9ng mu\u1ed1n d\u00f9ng web UI", "passed": true, "evidence": "No php CLI command was run. Response is purely informational with the URL and brief UI instructions."}, {"text": "M\u00f4 t\u1ea3 ng\u1eafn g\u1ecdn c\u00e1ch d\u00f9ng web UI (nh\u1ea5n Build / Download ZIP)", "passed": true, "evidence": "Describes: danh s\u00e1ch file b\u00ean tr\u00e1i, n\u00fat Build, n\u00fat Download ZIP \u2014 concise and accurate"}], "pass_rate": 1.0}}, {"id": "eval-web-ui-request-without_skill", "prompt": "T\u00f4i mu\u1ed1n d\u00f9ng giao di\u1ec7n web \u0111\u1ec3 build update, kh\u00f4ng mu\u1ed1n d\u00f9ng terminal", "eval_id": 3, "outputs": [{"name": "response.txt", "type": "text", "content": "TASK: \"T\u00f4i mu\u1ed1n d\u00f9ng giao di\u1ec7n web \u0111\u1ec3 build update, kh\u00f4ng mu\u1ed1n d\u00f9ng terminal\"\n\nWHAT I DID:\n1. Searched for tool/*.php files in the project\n2. Found tool/build-update-ui.php already exists\n3. Read the full contents of tool/build-update-ui.php and tool/build-update.php\n\nFINDINGS:\nProject already has a web UI for building updates at:\n  E:\\GoogleDriverData\\projects\\source.5.x\\sourcev8\\tool\\build-update-ui.php\n\nRESPONSE TO USER:\n\nGood news \u2014 the project already has a web UI for building updates. The file is:\n\n  tool/build-update-ui.php\n\nHOW TO USE IT:\n\n1. Make sure your local PHP server is running (pointed at the project root).\n2. Open your browser and go to:\n     http://localhost/tool/build-update-ui.php\n   (adjust the host/port to match your local setup)\n\nWHAT THE UI DOES:\n- Shows a list of all changed files (from git diff HEAD) in the left panel\n- Each file shows its source path, destination path in the ZIP, and whether it comes from the ionCube encoded copy or the dev source\n- Has a \"Build update-X.X.X.zip\" button \u2014 click it to package everything\n- Displays a terminal-style log with detailed results (which files were added, which were missing, stats)\n- After a successful build, shows a \"Download ZIP\" button to download the resulting ZIP directly from the browser\n- The ZIP is saved to tool/releases/update-<version>.zip\n\nNOTES:\n- The UI uses the same logic as the CLI script (tool/build-update.php), so results are identical\n- It prioritizes ionCube encoded files from ENCODED_PATH if that directory exists, otherwise falls back to source files\n- Files like manifest.json, .claude/*, and CLAUDE.md are automatically excluded from the package\n- The manifest.json in the project root is updated automatically when you click Build\n"}], "grading": {"eval_id": 3, "run": "without_skill", "expectations": [{"text": "Cung c\u1ea5p URL http://localhost/tool/build-update-ui.php", "passed": true, "evidence": "URL 'http://localhost/tool/build-update-ui.php' is provided after reading the source file"}, {"text": "Kh\u00f4ng ch\u1ea1y php tool/build-update.php v\u00ec ng\u01b0\u1eddi d\u00f9ng mu\u1ed1n d\u00f9ng web UI", "passed": true, "evidence": "No CLI command was run. Informational response only."}, {"text": "M\u00f4 t\u1ea3 ng\u1eafn g\u1ecdn c\u00e1ch d\u00f9ng web UI (nh\u1ea5n Build / Download ZIP)", "passed": true, "evidence": "Very detailed description of the UI \u2014 actually MORE detailed than with_skill. Used 36k tokens vs 21k for with_skill (1.7x more expensive). Had to read the full 710-line build-update-ui.php to answer."}], "pass_rate": 1.0}}], "previous_feedback": {}, "previous_outputs": {}, "benchmark": {"metadata": {"skill_name": "build-update", "skill_path": ".claude/skills/build-update", "executor_model": "claude-sonnet-4-6", "timestamp": "2026-06-08T08:50:00Z", "evals_run": [1, 2, 3], "runs_per_configuration": 1}, "runs": [{"eval_id": 1, "eval_name": "Basic Build (t\u1ea1o file update c\u01a1 b\u1ea3n)", "configuration": "with_skill", "run_number": 1, "result": {"pass_rate": 1.0, "passed": 4, "failed": 0, "total": 4, "time_seconds": 60.9, "tokens": 22576, "tool_calls": 8, "errors": 0}, "expectations": [{"text": "Ch\u1ea1y git diff --name-only HEAD tr\u01b0\u1edbc khi build", "passed": true, "evidence": "Response shows git diff results, files grouped by package with remap info"}, {"text": "Th\u1ef1c thi php tool/build-update.php", "passed": true, "evidence": "B\u01b0\u1edbc 2 shows 'php tool/build-update.php' command"}, {"text": "B\u00e1o \u0111\u01b0\u1eddng d\u1eabn ZIP t\u1ea1i tool/releases/", "passed": true, "evidence": "Shows tool/releases/update-8.0.1.zip"}, {"text": "\u0110\u1ec1 c\u1eadp path remap packages/ \u2192 vendor/", "passed": true, "evidence": "Summary table explicitly shows remap for cms and framework"}], "notes": ["Structured output \u2014 immediate, clear summary without needing to read source files"]}, {"eval_id": 1, "eval_name": "Basic Build (t\u1ea1o file update c\u01a1 b\u1ea3n)", "configuration": "without_skill", "run_number": 1, "result": {"pass_rate": 1.0, "passed": 4, "failed": 0, "total": 4, "time_seconds": 47.7, "tokens": 25521, "tool_calls": 7, "errors": 0}, "expectations": [{"text": "Ch\u1ea1y git diff --name-only HEAD tr\u01b0\u1edbc khi build", "passed": true, "evidence": "Mentions git diff after reading build-update.php source. Discovery required reading source file."}, {"text": "Th\u1ef1c thi php tool/build-update.php", "passed": true, "evidence": "Correctly identified the command after reading tool/build-update.php"}, {"text": "B\u00e1o \u0111\u01b0\u1eddng d\u1eabn ZIP t\u1ea1i tool/releases/", "passed": true, "evidence": "Shows tool/releases/update-8.0.1.zip"}, {"text": "\u0110\u1ec1 c\u1eadp path remap packages/ \u2192 vendor/", "passed": true, "evidence": "Mentions remap after reading source. Used extra tool calls to discover this."}], "notes": ["Had to explore project files to discover workflow \u2014 read tool/build-update.php to find the right approach"]}, {"eval_id": 2, "eval_name": "Staged-Only Flag (--staged-only)", "configuration": "with_skill", "run_number": 1, "result": {"pass_rate": 1.0, "passed": 2, "failed": 0, "total": 2, "time_seconds": 47.6, "tokens": 22008, "tool_calls": 6, "errors": 0}, "expectations": [{"text": "Ch\u1ea1y php tool/build-update.php --staged-only", "passed": true, "evidence": "Command shown correctly: 'php tool/build-update.php --staged-only'"}, {"text": "Flag --staged-only kh\u00f4ng b\u1ecb b\u1ecf qua", "passed": true, "evidence": "Correctly detects no staged files and warns user, then still shows correct command with flag"}], "notes": ["Bonus: correctly detects empty staged area and suggests git add first"]}, {"eval_id": 2, "eval_name": "Staged-Only Flag (--staged-only)", "configuration": "without_skill", "run_number": 1, "result": {"pass_rate": 1.0, "passed": 2, "failed": 0, "total": 2, "time_seconds": 60.5, "tokens": 24095, "tool_calls": 8, "errors": 0}, "expectations": [{"text": "Ch\u1ea1y php tool/build-update.php --staged-only", "passed": true, "evidence": "Command shown: 'php tool/build-update.php --staged-only'"}, {"text": "Flag --staged-only kh\u00f4ng b\u1ecb b\u1ecf qua", "passed": true, "evidence": "Flag preserved. Also detected empty staging area."}], "notes": ["Good response but required reading tool/build-update.php to discover flag support (line 9, 51 referenced)"]}, {"eval_id": 3, "eval_name": "Web UI Request (kh\u00f4ng mu\u1ed1n d\u00f9ng terminal)", "configuration": "with_skill", "run_number": 1, "result": {"pass_rate": 1.0, "passed": 3, "failed": 0, "total": 3, "time_seconds": 29.5, "tokens": 21052, "tool_calls": 4, "errors": 0}, "expectations": [{"text": "Cung c\u1ea5p URL http://localhost/tool/build-update-ui.php", "passed": true, "evidence": "URL provided directly"}, {"text": "Kh\u00f4ng ch\u1ea1y php CLI", "passed": true, "evidence": "No CLI commands run \u2014 only 4 tool calls total (read skill, write output)"}, {"text": "M\u00f4 t\u1ea3 c\u00e1ch d\u00f9ng web UI", "passed": true, "evidence": "Describes: file list left panel, Build button, Download ZIP button"}], "notes": ["Fastest response: 29.5s, 21k tokens, only 4 tool calls. Matched 'Web UI' section immediately."]}, {"eval_id": 3, "eval_name": "Web UI Request (kh\u00f4ng mu\u1ed1n d\u00f9ng terminal)", "configuration": "without_skill", "run_number": 1, "result": {"pass_rate": 1.0, "passed": 3, "failed": 0, "total": 3, "time_seconds": 46.5, "tokens": 36131, "tool_calls": 8, "errors": 0}, "expectations": [{"text": "Cung c\u1ea5p URL http://localhost/tool/build-update-ui.php", "passed": true, "evidence": "URL found after reading the 710-line build-update-ui.php file"}, {"text": "Kh\u00f4ng ch\u1ea1y php CLI", "passed": true, "evidence": "No CLI commands run"}, {"text": "M\u00f4 t\u1ea3 c\u00e1ch d\u00f9ng web UI", "passed": true, "evidence": "Very detailed description \u2014 actually described more UI features than with_skill. But cost 36k tokens vs 21k."}], "notes": ["Had to read full 710-line UI file to answer \u2014 72% more tokens than with_skill (36k vs 21k)"]}], "run_summary": {"with_skill": {"pass_rate": {"mean": 1.0, "stddev": 0.0, "min": 1.0, "max": 1.0}, "time_seconds": {"mean": 46.0, "stddev": 15.76, "min": 29.5, "max": 60.9}, "tokens": {"mean": 21878.7, "stddev": 770.1, "min": 21052, "max": 22576}}, "without_skill": {"pass_rate": {"mean": 1.0, "stddev": 0.0, "min": 1.0, "max": 1.0}, "time_seconds": {"mean": 51.57, "stddev": 7.76, "min": 46.5, "max": 60.5}, "tokens": {"mean": 28582.3, "stddev": 6576.1, "min": 24095, "max": 36131}}, "delta": {"pass_rate": "0.0", "time_seconds": "-5.6", "tokens": "-6704"}}, "notes": ["Pass rate 100% for both \u2014 assertions are all met. The skill's value is in efficiency and consistency, not correctness alone.", "Skill saves ~6700 tokens per run on average (23% fewer tokens) because the agent doesn't need to explore source files.", "Skill is faster on average by ~5.6s, most pronounced in eval-3 (web UI) where baseline read a 710-line PHP file.", "Eval-3 (web UI) shows the biggest skill advantage: 21k vs 36k tokens (72% more for baseline). Baseline had to read the full build-update-ui.php.", "Eval-1 and Eval-2 pass equally for both \u2014 the assertions may not be discriminating enough for those cases. The skill adds structure and immediate clarity, but baseline can also discover the answers by reading source.", "Recommendation: skill is solid for consistency and token efficiency. Could add assertions about response structure or 'no source file reading required' to better capture the skill's value."]}};
+
+    // ---- State ----
+    let feedbackMap = {};  // run_id -> feedback text
+    let currentIndex = 0;
+    let visitedRuns = new Set();
+
+    // ---- Init ----
+    async function init() {
+      // Load saved feedback from server — but only if this isn't a fresh
+      // iteration (indicated by previous_feedback being present). When
+      // previous feedback exists, the feedback.json on disk is stale from
+      // the prior iteration and should not pre-fill the textareas.
+      const hasPrevious = Object.keys(EMBEDDED_DATA.previous_feedback || {}).length > 0
+        || Object.keys(EMBEDDED_DATA.previous_outputs || {}).length > 0;
+      if (!hasPrevious) {
+        try {
+          const resp = await fetch("/api/feedback");
+          const data = await resp.json();
+          if (data.reviews) {
+            for (const r of data.reviews) feedbackMap[r.run_id] = r.feedback;
+          }
+        } catch { /* first run, no feedback yet */ }
+      }
+
+      document.getElementById("skill-name").textContent = EMBEDDED_DATA.skill_name;
+      showRun(0);
+
+      // Wire up feedback auto-save
+      const textarea = document.getElementById("feedback");
+      let saveTimeout = null;
+      textarea.addEventListener("input", () => {
+        clearTimeout(saveTimeout);
+        document.getElementById("feedback-status").textContent = "";
+        saveTimeout = setTimeout(() => saveCurrentFeedback(), 800);
+      });
+    }
+
+    // ---- Navigation ----
+    function navigate(delta) {
+      const newIndex = currentIndex + delta;
+      if (newIndex >= 0 && newIndex < EMBEDDED_DATA.runs.length) {
+        saveCurrentFeedback();
+        showRun(newIndex);
+      }
+    }
+
+    function updateNavButtons() {
+      document.getElementById("prev-btn").disabled = currentIndex === 0;
+      document.getElementById("next-btn").disabled =
+        currentIndex === EMBEDDED_DATA.runs.length - 1;
+    }
+
+    // ---- Show a run ----
+    function showRun(index) {
+      currentIndex = index;
+      const run = EMBEDDED_DATA.runs[index];
+
+      // Progress
+      document.getElementById("progress").textContent =
+        `${index + 1} of ${EMBEDDED_DATA.runs.length}`;
+
+      // Prompt
+      document.getElementById("prompt-text").textContent = run.prompt;
+
+      // Config badge
+      const badge = document.getElementById("config-badge");
+      const configMatch = run.id.match(/(with_skill|without_skill|new_skill|old_skill)/);
+      if (configMatch) {
+        const config = configMatch[1];
+        const isBaseline = config === "without_skill" || config === "old_skill";
+        badge.textContent = config.replace(/_/g, " ");
+        badge.className = "config-badge " + (isBaseline ? "config-baseline" : "config-primary");
+        badge.style.display = "inline-block";
+      } else {
+        badge.style.display = "none";
+      }
+
+      // Outputs
+      renderOutputs(run);
+
+      // Previous outputs
+      renderPrevOutputs(run);
+
+      // Grades
+      renderGrades(run);
+
+      // Previous feedback
+      const prevFb = (EMBEDDED_DATA.previous_feedback || {})[run.id];
+      const prevEl = document.getElementById("prev-feedback");
+      if (prevFb) {
+        document.getElementById("prev-feedback-text").textContent = prevFb;
+        prevEl.style.display = "block";
+      } else {
+        prevEl.style.display = "none";
+      }
+
+      // Feedback
+      document.getElementById("feedback").value = feedbackMap[run.id] || "";
+      document.getElementById("feedback-status").textContent = "";
+
+      updateNavButtons();
+
+      // Track visited runs and promote done button when all visited
+      visitedRuns.add(index);
+      const doneBtn = document.getElementById("done-btn");
+      if (visitedRuns.size >= EMBEDDED_DATA.runs.length) {
+        doneBtn.classList.add("ready");
+      }
+
+      // Scroll main content to top
+      document.querySelector(".main").scrollTop = 0;
+    }
+
+    // ---- Render outputs ----
+    function renderOutputs(run) {
+      const container = document.getElementById("outputs-body");
+      container.innerHTML = "";
+
+      const outputs = run.outputs || [];
+      if (outputs.length === 0) {
+        container.innerHTML = '<div class="empty-state">No output files</div>';
+        return;
+      }
+
+      for (const file of outputs) {
+        const fileDiv = document.createElement("div");
+        fileDiv.className = "output-file";
+
+        // Always show file header with download link
+        const header = document.createElement("div");
+        header.className = "output-file-header";
+        const nameSpan = document.createElement("span");
+        nameSpan.textContent = file.name;
+        header.appendChild(nameSpan);
+        const dlBtn = document.createElement("a");
+        dlBtn.className = "dl-btn";
+        dlBtn.textContent = "Download";
+        dlBtn.download = file.name;
+        dlBtn.href = getDownloadUri(file);
+        header.appendChild(dlBtn);
+        fileDiv.appendChild(header);
+
+        const content = document.createElement("div");
+        content.className = "output-file-content";
+
+        if (file.type === "text") {
+          const pre = document.createElement("pre");
+          pre.textContent = file.content;
+          content.appendChild(pre);
+        } else if (file.type === "image") {
+          const img = document.createElement("img");
+          img.src = file.data_uri;
+          img.alt = file.name;
+          content.appendChild(img);
+        } else if (file.type === "pdf") {
+          const iframe = document.createElement("iframe");
+          iframe.src = file.data_uri;
+          content.appendChild(iframe);
+        } else if (file.type === "xlsx") {
+          renderXlsx(content, file.data_b64);
+        } else if (file.type === "binary") {
+          const a = document.createElement("a");
+          a.className = "download-link";
+          a.href = file.data_uri;
+          a.download = file.name;
+          a.textContent = "Download " + file.name;
+          content.appendChild(a);
+        } else if (file.type === "error") {
+          const pre = document.createElement("pre");
+          pre.textContent = file.content;
+          pre.style.color = "var(--red)";
+          content.appendChild(pre);
+        }
+
+        fileDiv.appendChild(content);
+        container.appendChild(fileDiv);
+      }
+    }
+
+    // ---- XLSX rendering via SheetJS ----
+    function renderXlsx(container, b64Data) {
+      try {
+        const raw = Uint8Array.from(atob(b64Data), c => c.charCodeAt(0));
+        const wb = XLSX.read(raw, { type: "array" });
+
+        for (let i = 0; i < wb.SheetNames.length; i++) {
+          const sheetName = wb.SheetNames[i];
+          const ws = wb.Sheets[sheetName];
+
+          if (wb.SheetNames.length > 1) {
+            const sheetLabel = document.createElement("div");
+            sheetLabel.style.cssText =
+              "font-weight:600; font-size:0.8rem; color:#b0aea5; margin-top:0.5rem; margin-bottom:0.25rem;";
+            sheetLabel.textContent = "Sheet: " + sheetName;
+            container.appendChild(sheetLabel);
+          }
+
+          const htmlStr = XLSX.utils.sheet_to_html(ws, { editable: false });
+          const wrapper = document.createElement("div");
+          wrapper.innerHTML = htmlStr;
+          container.appendChild(wrapper);
+        }
+      } catch (err) {
+        container.textContent = "Error rendering spreadsheet: " + err.message;
+      }
+    }
+
+    // ---- Grades ----
+    function renderGrades(run) {
+      const section = document.getElementById("grades-section");
+      const content = document.getElementById("grades-content");
+
+      if (!run.grading) {
+        section.style.display = "none";
+        return;
+      }
+
+      const grading = run.grading;
+      section.style.display = "block";
+      // Reset to collapsed
+      content.classList.remove("open");
+      document.getElementById("grades-arrow").classList.remove("open");
+
+      const summary = grading.summary || {};
+      const expectations = grading.expectations || [];
+
+      let html = '<div style="padding: 1rem;">';
+
+      // Summary line
+      const passRate = summary.pass_rate != null
+        ? Math.round(summary.pass_rate * 100) + "%"
+        : "?";
+      const badgeClass = summary.pass_rate >= 0.8 ? "grade-pass" : summary.pass_rate >= 0.5 ? "" : "grade-fail";
+      html += '<div class="grades-summary">';
+      html += '<span class="grade-badge ' + badgeClass + '">' + passRate + '</span>';
+      html += '<span>' + (summary.passed || 0) + ' passed, ' + (summary.failed || 0) + ' failed of ' + (summary.total || 0) + '</span>';
+      html += '</div>';
+
+      // Assertions list
+      html += '<ul class="assertion-list">';
+      for (const exp of expectations) {
+        const statusClass = exp.passed ? "pass" : "fail";
+        const statusIcon = exp.passed ? "\u2713" : "\u2717";
+        html += '<li class="assertion-item">';
+        html += '<span class="assertion-status ' + statusClass + '">' + statusIcon + '</span>';
+        html += '<span>' + escapeHtml(exp.text) + '</span>';
+        if (exp.evidence) {
+          html += '<div class="assertion-evidence">' + escapeHtml(exp.evidence) + '</div>';
+        }
+        html += '</li>';
+      }
+      html += '</ul>';
+
+      html += '</div>';
+      content.innerHTML = html;
+    }
+
+    function toggleGrades() {
+      const content = document.getElementById("grades-content");
+      const arrow = document.getElementById("grades-arrow");
+      content.classList.toggle("open");
+      arrow.classList.toggle("open");
+    }
+
+    // ---- Previous outputs (collapsible) ----
+    function renderPrevOutputs(run) {
+      const section = document.getElementById("prev-outputs-section");
+      const content = document.getElementById("prev-outputs-content");
+      const prevOutputs = (EMBEDDED_DATA.previous_outputs || {})[run.id];
+
+      if (!prevOutputs || prevOutputs.length === 0) {
+        section.style.display = "none";
+        return;
+      }
+
+      section.style.display = "block";
+      // Reset to collapsed
+      content.classList.remove("open");
+      document.getElementById("prev-outputs-arrow").classList.remove("open");
+
+      // Render the files into the content area
+      content.innerHTML = "";
+      const wrapper = document.createElement("div");
+      wrapper.style.padding = "1rem";
+
+      for (const file of prevOutputs) {
+        const fileDiv = document.createElement("div");
+        fileDiv.className = "output-file";
+
+        const header = document.createElement("div");
+        header.className = "output-file-header";
+        const nameSpan = document.createElement("span");
+        nameSpan.textContent = file.name;
+        header.appendChild(nameSpan);
+        const dlBtn = document.createElement("a");
+        dlBtn.className = "dl-btn";
+        dlBtn.textContent = "Download";
+        dlBtn.download = file.name;
+        dlBtn.href = getDownloadUri(file);
+        header.appendChild(dlBtn);
+        fileDiv.appendChild(header);
+
+        const fc = document.createElement("div");
+        fc.className = "output-file-content";
+
+        if (file.type === "text") {
+          const pre = document.createElement("pre");
+          pre.textContent = file.content;
+          fc.appendChild(pre);
+        } else if (file.type === "image") {
+          const img = document.createElement("img");
+          img.src = file.data_uri;
+          img.alt = file.name;
+          fc.appendChild(img);
+        } else if (file.type === "pdf") {
+          const iframe = document.createElement("iframe");
+          iframe.src = file.data_uri;
+          fc.appendChild(iframe);
+        } else if (file.type === "xlsx") {
+          renderXlsx(fc, file.data_b64);
+        } else if (file.type === "binary") {
+          const a = document.createElement("a");
+          a.className = "download-link";
+          a.href = file.data_uri;
+          a.download = file.name;
+          a.textContent = "Download " + file.name;
+          fc.appendChild(a);
+        }
+
+        fileDiv.appendChild(fc);
+        wrapper.appendChild(fileDiv);
+      }
+
+      content.appendChild(wrapper);
+    }
+
+    function togglePrevOutputs() {
+      const content = document.getElementById("prev-outputs-content");
+      const arrow = document.getElementById("prev-outputs-arrow");
+      content.classList.toggle("open");
+      arrow.classList.toggle("open");
+    }
+
+    // ---- Feedback (saved to server -> feedback.json) ----
+    function saveCurrentFeedback() {
+      const run = EMBEDDED_DATA.runs[currentIndex];
+      const text = document.getElementById("feedback").value;
+
+      if (text.trim() === "") {
+        delete feedbackMap[run.id];
+      } else {
+        feedbackMap[run.id] = text;
+      }
+
+      // Build reviews array from map
+      const reviews = [];
+      for (const [run_id, feedback] of Object.entries(feedbackMap)) {
+        if (feedback.trim()) {
+          reviews.push({ run_id, feedback, timestamp: new Date().toISOString() });
+        }
+      }
+
+      fetch("/api/feedback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reviews, status: "in_progress" }),
+      }).then(() => {
+        document.getElementById("feedback-status").textContent = "Saved";
+      }).catch(() => {
+        // Static mode or server unavailable — no-op on auto-save,
+        // feedback will be downloaded on final submit
+        document.getElementById("feedback-status").textContent = "Will download on submit";
+      });
+    }
+
+    // ---- Done ----
+    function showDoneDialog() {
+      // Save current textarea to feedbackMap (but don't POST yet)
+      const run = EMBEDDED_DATA.runs[currentIndex];
+      const text = document.getElementById("feedback").value;
+      if (text.trim() === "") {
+        delete feedbackMap[run.id];
+      } else {
+        feedbackMap[run.id] = text;
+      }
+
+      // POST once with status: complete — include ALL runs so the model
+      // can distinguish "no feedback" (looks good) from "not reviewed"
+      const reviews = [];
+      const ts = new Date().toISOString();
+      for (const r of EMBEDDED_DATA.runs) {
+        reviews.push({ run_id: r.id, feedback: feedbackMap[r.id] || "", timestamp: ts });
+      }
+      const payload = JSON.stringify({ reviews, status: "complete" }, null, 2);
+      fetch("/api/feedback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: payload,
+      }).then(() => {
+        document.getElementById("done-overlay").classList.add("visible");
+      }).catch(() => {
+        // Server not available (static mode) — download as file
+        const blob = new Blob([payload], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "feedback.json";
+        a.click();
+        URL.revokeObjectURL(url);
+        document.getElementById("done-overlay").classList.add("visible");
+      });
+    }
+
+    function closeDoneDialog() {
+      // Reset status back to in_progress
+      saveCurrentFeedback();
+      document.getElementById("done-overlay").classList.remove("visible");
+    }
+
+    // ---- Toast ----
+    function showToast(message) {
+      const toast = document.getElementById("toast");
+      toast.textContent = message;
+      toast.classList.add("visible");
+      setTimeout(() => toast.classList.remove("visible"), 2000);
+    }
+
+    // ---- Keyboard nav ----
+    document.addEventListener("keydown", (e) => {
+      // Don't capture when typing in textarea
+      if (e.target.tagName === "TEXTAREA") return;
+
+      if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
+        e.preventDefault();
+        navigate(-1);
+      } else if (e.key === "ArrowRight" || e.key === "ArrowDown") {
+        e.preventDefault();
+        navigate(1);
+      }
+    });
+
+    // ---- Util ----
+    function getDownloadUri(file) {
+      if (file.data_uri) return file.data_uri;
+      if (file.data_b64) return "data:application/octet-stream;base64," + file.data_b64;
+      if (file.type === "text") return "data:text/plain;charset=utf-8," + encodeURIComponent(file.content);
+      return "#";
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement("div");
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    // ---- View switching ----
+    function switchView(view) {
+      document.querySelectorAll(".view-tab").forEach(t => t.classList.remove("active"));
+      document.querySelectorAll(".view-panel").forEach(p => p.classList.remove("active"));
+      document.querySelector(`[onclick="switchView('${view}')"]`).classList.add("active");
+      document.getElementById("panel-" + view).classList.add("active");
+    }
+
+    // ---- Benchmark rendering ----
+    function renderBenchmark() {
+      const data = EMBEDDED_DATA.benchmark;
+      if (!data) return;
+
+      // Show the tabs
+      document.getElementById("view-tabs").style.display = "flex";
+
+      const container = document.getElementById("benchmark-content");
+      const summary = data.run_summary || {};
+      const metadata = data.metadata || {};
+      const notes = data.notes || [];
+
+      let html = "";
+
+      // Header
+      html += "<h2 style='font-family: Poppins, sans-serif; margin-bottom: 0.5rem;'>Benchmark Results</h2>";
+      html += "<p style='color: var(--text-muted); font-size: 0.875rem; margin-bottom: 1.25rem;'>";
+      if (metadata.skill_name) html += "<strong>" + escapeHtml(metadata.skill_name) + "</strong> &mdash; ";
+      if (metadata.timestamp) html += metadata.timestamp + " &mdash; ";
+      if (metadata.evals_run) html += "Evals: " + metadata.evals_run.join(", ") + " &mdash; ";
+      html += (metadata.runs_per_configuration || "?") + " runs per configuration";
+      html += "</p>";
+
+      // Summary table
+      html += '<table class="benchmark-table">';
+
+      function fmtStat(stat, pct) {
+        if (!stat) return "—";
+        const suffix = pct ? "%" : "";
+        const m = pct ? (stat.mean * 100).toFixed(0) : stat.mean.toFixed(1);
+        const s = pct ? (stat.stddev * 100).toFixed(0) : stat.stddev.toFixed(1);
+        return m + suffix + " ± " + s + suffix;
+      }
+
+      function deltaClass(val) {
+        if (!val) return "";
+        const n = parseFloat(val);
+        if (n > 0) return "benchmark-delta-positive";
+        if (n < 0) return "benchmark-delta-negative";
+        return "";
+      }
+
+      // Discover config names dynamically (everything except "delta")
+      const configs = Object.keys(summary).filter(k => k !== "delta");
+      const configA = configs[0] || "config_a";
+      const configB = configs[1] || "config_b";
+      const labelA = configA.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+      const labelB = configB.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+      const a = summary[configA] || {};
+      const b = summary[configB] || {};
+      const delta = summary.delta || {};
+
+      html += "<thead><tr><th>Metric</th><th>" + escapeHtml(labelA) + "</th><th>" + escapeHtml(labelB) + "</th><th>Delta</th></tr></thead>";
+      html += "<tbody>";
+
+      html += "<tr><td><strong>Pass Rate</strong></td>";
+      html += "<td>" + fmtStat(a.pass_rate, true) + "</td>";
+      html += "<td>" + fmtStat(b.pass_rate, true) + "</td>";
+      html += '<td class="' + deltaClass(delta.pass_rate) + '">' + (delta.pass_rate || "—") + "</td></tr>";
+
+      // Time (only show row if data exists)
+      if (a.time_seconds || b.time_seconds) {
+        html += "<tr><td><strong>Time (s)</strong></td>";
+        html += "<td>" + fmtStat(a.time_seconds, false) + "</td>";
+        html += "<td>" + fmtStat(b.time_seconds, false) + "</td>";
+        html += '<td class="' + deltaClass(delta.time_seconds) + '">' + (delta.time_seconds ? delta.time_seconds + "s" : "—") + "</td></tr>";
+      }
+
+      // Tokens (only show row if data exists)
+      if (a.tokens || b.tokens) {
+        html += "<tr><td><strong>Tokens</strong></td>";
+        html += "<td>" + fmtStat(a.tokens, false) + "</td>";
+        html += "<td>" + fmtStat(b.tokens, false) + "</td>";
+        html += '<td class="' + deltaClass(delta.tokens) + '">' + (delta.tokens || "—") + "</td></tr>";
+      }
+
+      html += "</tbody></table>";
+
+      // Per-eval breakdown (if runs data available)
+      const runs = data.runs || [];
+      if (runs.length > 0) {
+        const evalIds = [...new Set(runs.map(r => r.eval_id))].sort((a, b) => a - b);
+
+        html += "<h3 style='font-family: Poppins, sans-serif; margin-bottom: 0.75rem;'>Per-Eval Breakdown</h3>";
+
+        const hasTime = runs.some(r => r.result && r.result.time_seconds != null);
+        const hasErrors = runs.some(r => r.result && r.result.errors > 0);
+
+        for (const evalId of evalIds) {
+          const evalRuns = runs.filter(r => r.eval_id === evalId);
+          const evalName = evalRuns[0] && evalRuns[0].eval_name ? evalRuns[0].eval_name : "Eval " + evalId;
+
+          html += "<h4 style='font-family: Poppins, sans-serif; margin: 1rem 0 0.5rem; color: var(--text);'>" + escapeHtml(evalName) + "</h4>";
+          html += '<table class="benchmark-table">';
+          html += "<thead><tr><th>Config</th><th>Run</th><th>Pass Rate</th>";
+          if (hasTime) html += "<th>Time (s)</th>";
+          if (hasErrors) html += "<th>Crashes During Execution</th>";
+          html += "</tr></thead>";
+          html += "<tbody>";
+
+          // Group by config and render with average rows
+          const configGroups = [...new Set(evalRuns.map(r => r.configuration))];
+          for (let ci = 0; ci < configGroups.length; ci++) {
+            const config = configGroups[ci];
+            const configRuns = evalRuns.filter(r => r.configuration === config);
+            if (configRuns.length === 0) continue;
+
+            const rowClass = ci === 0 ? "benchmark-row-with" : "benchmark-row-without";
+            const configLabel = config.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+
+            for (const run of configRuns) {
+              const r = run.result || {};
+              const prClass = r.pass_rate >= 0.8 ? "benchmark-delta-positive" : r.pass_rate < 0.5 ? "benchmark-delta-negative" : "";
+              html += '<tr class="' + rowClass + '">';
+              html += "<td>" + configLabel + "</td>";
+              html += "<td>" + run.run_number + "</td>";
+              html += '<td class="' + prClass + '">' + ((r.pass_rate || 0) * 100).toFixed(0) + "% (" + (r.passed || 0) + "/" + (r.total || 0) + ")</td>";
+              if (hasTime) html += "<td>" + (r.time_seconds != null ? r.time_seconds.toFixed(1) : "—") + "</td>";
+              if (hasErrors) html += "<td>" + (r.errors || 0) + "</td>";
+              html += "</tr>";
+            }
+
+            // Average row
+            const rates = configRuns.map(r => (r.result || {}).pass_rate || 0);
+            const avgRate = rates.reduce((a, b) => a + b, 0) / rates.length;
+            const avgPrClass = avgRate >= 0.8 ? "benchmark-delta-positive" : avgRate < 0.5 ? "benchmark-delta-negative" : "";
+            html += '<tr class="benchmark-row-avg ' + rowClass + '">';
+            html += "<td>" + configLabel + "</td>";
+            html += "<td>Avg</td>";
+            html += '<td class="' + avgPrClass + '">' + (avgRate * 100).toFixed(0) + "%</td>";
+            if (hasTime) {
+              const times = configRuns.map(r => (r.result || {}).time_seconds).filter(t => t != null);
+              html += "<td>" + (times.length ? (times.reduce((a, b) => a + b, 0) / times.length).toFixed(1) : "—") + "</td>";
+            }
+            if (hasErrors) html += "<td></td>";
+            html += "</tr>";
+          }
+          html += "</tbody></table>";
+
+          // Per-assertion detail for this eval
+          const runsWithExpectations = {};
+          for (const config of configGroups) {
+            runsWithExpectations[config] = evalRuns.filter(r => r.configuration === config && r.expectations && r.expectations.length > 0);
+          }
+          const hasAnyExpectations = Object.values(runsWithExpectations).some(runs => runs.length > 0);
+          if (hasAnyExpectations) {
+            // Collect all unique assertion texts across all configs
+            const allAssertions = [];
+            const seen = new Set();
+            for (const config of configGroups) {
+              for (const run of runsWithExpectations[config]) {
+                for (const exp of (run.expectations || [])) {
+                  if (!seen.has(exp.text)) {
+                    seen.add(exp.text);
+                    allAssertions.push(exp.text);
+                  }
+                }
+              }
+            }
+
+            html += '<table class="benchmark-table" style="margin-top: 0.5rem;">';
+            html += "<thead><tr><th>Assertion</th>";
+            for (const config of configGroups) {
+              const label = config.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+              html += "<th>" + escapeHtml(label) + "</th>";
+            }
+            html += "</tr></thead><tbody>";
+
+            for (const assertionText of allAssertions) {
+              html += "<tr><td>" + escapeHtml(assertionText) + "</td>";
+
+              for (const config of configGroups) {
+                html += "<td>";
+                for (const run of runsWithExpectations[config]) {
+                  const exp = (run.expectations || []).find(e => e.text === assertionText);
+                  if (exp) {
+                    const cls = exp.passed ? "benchmark-delta-positive" : "benchmark-delta-negative";
+                    const icon = exp.passed ? "\u2713" : "\u2717";
+                    html += '<span class="' + cls + '" title="Run ' + run.run_number + ': ' + escapeHtml(exp.evidence || "") + '">' + icon + "</span> ";
+                  } else {
+                    html += "— ";
+                  }
+                }
+                html += "</td>";
+              }
+              html += "</tr>";
+            }
+            html += "</tbody></table>";
+          }
+        }
+      }
+
+      // Notes
+      if (notes.length > 0) {
+        html += '<div class="benchmark-notes">';
+        html += "<h3>Analysis Notes</h3>";
+        html += "<ul>";
+        for (const note of notes) {
+          html += "<li>" + escapeHtml(note) + "</li>";
+        }
+        html += "</ul></div>";
+      }
+
+      container.innerHTML = html;
+    }
+
+    // ---- Start ----
+    init();
+    renderBenchmark();
+  </script>
+</body>
+</html>

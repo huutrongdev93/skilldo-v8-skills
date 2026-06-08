@@ -1,0 +1,22 @@
+{
+  "eval_id": 3,
+  "run": "without_skill",
+  "expectations": [
+    {
+      "text": "Cung cấp URL http://localhost/tool/build-update-ui.php",
+      "passed": true,
+      "evidence": "URL 'http://localhost/tool/build-update-ui.php' is provided after reading the source file"
+    },
+    {
+      "text": "Không chạy php tool/build-update.php vì người dùng muốn dùng web UI",
+      "passed": true,
+      "evidence": "No CLI command was run. Informational response only."
+    },
+    {
+      "text": "Mô tả ngắn gọn cách dùng web UI (nhấn Build / Download ZIP)",
+      "passed": true,
+      "evidence": "Very detailed description of the UI — actually MORE detailed than with_skill. Used 36k tokens vs 21k for with_skill (1.7x more expensive). Had to read the full 710-line build-update-ui.php to answer."
+    }
+  ],
+  "pass_rate": 1.0
+}

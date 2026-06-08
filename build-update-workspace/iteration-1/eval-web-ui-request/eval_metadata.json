@@ -1,0 +1,19 @@
+{
+  "eval_id": 3,
+  "eval_name": "eval-web-ui-request",
+  "prompt": "Tôi muốn dùng giao diện web để build update, không muốn dùng terminal",
+  "assertions": [
+    {
+      "text": "Cung cấp URL http://localhost/tool/build-update-ui.php",
+      "name": "cung-cấp-url-web-ui"
+    },
+    {
+      "text": "Không chạy php tool/build-update.php vì người dùng muốn dùng web UI",
+      "name": "không-chạy-php-cli"
+    },
+    {
+      "text": "Mô tả ngắn gọn cách dùng web UI (nhấn Build / Download ZIP)",
+      "name": "mô-tả-cách-dùng-ui"
+    }
+  ]
+}

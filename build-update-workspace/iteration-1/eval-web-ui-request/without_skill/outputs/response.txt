@@ -1,0 +1,37 @@
+TASK: "Tôi muốn dùng giao diện web để build update, không muốn dùng terminal"
+
+WHAT I DID:
+1. Searched for tool/*.php files in the project
+2. Found tool/build-update-ui.php already exists
+3. Read the full contents of tool/build-update-ui.php and tool/build-update.php
+
+FINDINGS:
+Project already has a web UI for building updates at:
+  E:\GoogleDriverData\projects\source.5.x\sourcev8\tool\build-update-ui.php
+
+RESPONSE TO USER:
+
+Good news — the project already has a web UI for building updates. The file is:
+
+  tool/build-update-ui.php
+
+HOW TO USE IT:
+
+1. Make sure your local PHP server is running (pointed at the project root).
+2. Open your browser and go to:
+     http://localhost/tool/build-update-ui.php
+   (adjust the host/port to match your local setup)
+
+WHAT THE UI DOES:
+- Shows a list of all changed files (from git diff HEAD) in the left panel
+- Each file shows its source path, destination path in the ZIP, and whether it comes from the ionCube encoded copy or the dev source
+- Has a "Build update-X.X.X.zip" button — click it to package everything
+- Displays a terminal-style log with detailed results (which files were added, which were missing, stats)
+- After a successful build, shows a "Download ZIP" button to download the resulting ZIP directly from the browser
+- The ZIP is saved to tool/releases/update-<version>.zip
+
+NOTES:
+- The UI uses the same logic as the CLI script (tool/build-update.php), so results are identical
+- It prioritizes ionCube encoded files from ENCODED_PATH if that directory exists, otherwise falls back to source files
+- Files like manifest.json, .claude/*, and CLAUDE.md are automatically excluded from the package
+- The manifest.json in the project root is updated automatically when you click Build

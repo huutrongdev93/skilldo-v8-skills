@@ -1,0 +1,23 @@
+{
+  "eval_id": 1,
+  "eval_name": "eval-basic-build",
+  "prompt": "Tôi vừa sửa xong mấy file trong packages/skilldo/cms, giờ cần tạo file update để upload lên server. Giúp tôi build cái zip cập nhật đó.",
+  "assertions": [
+    {
+      "text": "Chạy git diff --name-only HEAD (hoặc tương đương) để kiểm tra file thay đổi trước khi build",
+      "name": "chạy-git-diff-trước"
+    },
+    {
+      "text": "Thực thi lệnh php tool/build-update.php",
+      "name": "chạy-php-build-script"
+    },
+    {
+      "text": "Báo đường dẫn ZIP tại tool/releases/ trong kết quả",
+      "name": "báo-đường-dẫn-zip"
+    },
+    {
+      "text": "Đề cập path remap: packages/skilldo/ → vendor/skilldo/ trong ZIP",
+      "name": "đề-cập-path-remap"
+    }
+  ]
+}

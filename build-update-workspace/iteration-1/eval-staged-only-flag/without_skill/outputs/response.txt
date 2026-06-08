@@ -1,0 +1,64 @@
+TASK: build update --staged-only (đóng gói chỉ các file đã git add)
+DATE: 2026-06-08
+MODEL: claude-sonnet-4-6 (without build-update skill)
+
+=== PHÂN TÍCH ===
+
+Tôi đã đọc file tool/build-update.php và kiểm tra trạng thái git hiện tại.
+
+Script tool/build-update.php đã hỗ trợ sẵn flag --staged-only (dòng 9, 51, 77-79).
+Khi truyền --staged-only, script chạy: git diff --cached --name-only
+để lấy danh sách file đã được git add (staged).
+
+=== TRẠNG THÁI GIT HIỆN TẠI ===
+
+Kết quả git status --short cho thấy TẤT CẢ các file đang ở trạng thái
+unstaged (chữ M ở cột thứ 2, không có chữ M ở cột đầu):
+
+ M app/Controllers/Admin/AjaxController.php
+ M packages/skilldo/cms/src/Http/Middleware/RedirectIfAuthenticated.php
+ M packages/skilldo/cms/src/Loader.php
+ M packages/skilldo/cms/src/Menu/ThemeMenu.php
+ M packages/skilldo/cms/src/Models/ThemeMenuItem.php
+ M packages/skilldo/cms/src/Providers/SystemServiceProvider.php
+ M packages/skilldo/cms/src/config/cms.php
+ M packages/skilldo/framework/src/Cache/Drivers/CacheFile.php
+ M packages/skilldo/framework/src/Http/Middlewares/VerifyCsrfToken.php
+ M packages/skilldo/framework/src/config/csrf.php
+ M views/admin/app/Ajax/TableAjax.php
+ M views/admin/app/Modules/User/Table.php
+ M views/admin/app/Popovers/UserPopover.php
+ M views/admin/assets/js/element-builder-review.bundle.js
+ M views/admin/assets/js/script.bundle.js
+
+=> git diff --cached --name-only trả về RỖNG — không có file nào được staged.
+
+=== VẤN ĐỀ ===
+
+Bạn muốn dùng --staged-only nhưng chưa git add file nào.
+Nếu chạy lệnh ngay lúc này, script sẽ báo lỗi:
+  [LỖI] Không có file nào thay đổi.
+
+=== CÁCH THỰC HIỆN ===
+
+Bước 1: git add các file bạn muốn đóng gói, ví dụ:
+  git add app/Controllers/Admin/AjaxController.php
+  git add packages/skilldo/cms/src/config/cms.php
+  (hoặc git add . để add tất cả)
+
+Bước 2: Chạy lệnh build:
+  php tool/build-update.php --staged-only
+
+Script sẽ:
+  1. Đọc version từ packages/skilldo/cms/src/config/cms.php
+  2. Lấy danh sách file đã staged: git diff --cached --name-only
+  3. Remap đường dẫn packages/skilldo/* -> vendor/skilldo/* cho production
+  4. Cập nhật manifest.json tại root dự án
+  5. Tạo file ZIP tại tool/releases/update-{version}.zip
+
+=== LƯU Ý ===
+
+- Không cần commit trước khi build — --staged-only lấy từ index (staging area).
+- File manifest.json và .claude/ bị loại tự động khỏi danh sách đóng gói.
+- Nếu thư mục ENCODED_PATH (E:/Source-Sikido/source-v8/sourcev8) tồn tại,
+  script ưu tiên dùng file đã encode ionCube; nếu không thì fallback về source gốc.

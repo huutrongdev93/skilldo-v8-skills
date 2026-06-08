@@ -1,0 +1,169 @@
+{
+  "metadata": {
+    "skill_name": "build-update",
+    "skill_path": ".claude/skills/build-update",
+    "executor_model": "claude-sonnet-4-6",
+    "timestamp": "2026-06-08T08:50:00Z",
+    "evals_run": [1, 2, 3],
+    "runs_per_configuration": 1
+  },
+  "runs": [
+    {
+      "eval_id": 1,
+      "eval_name": "Basic Build (tạo file update cơ bản)",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 4,
+        "failed": 0,
+        "total": 4,
+        "time_seconds": 60.9,
+        "tokens": 22576,
+        "tool_calls": 8,
+        "errors": 0
+      },
+      "expectations": [
+        {"text": "Chạy git diff --name-only HEAD trước khi build", "passed": true, "evidence": "Response shows git diff results, files grouped by package with remap info"},
+        {"text": "Thực thi php tool/build-update.php", "passed": true, "evidence": "Bước 2 shows 'php tool/build-update.php' command"},
+        {"text": "Báo đường dẫn ZIP tại tool/releases/", "passed": true, "evidence": "Shows tool/releases/update-8.0.1.zip"},
+        {"text": "Đề cập path remap packages/ → vendor/", "passed": true, "evidence": "Summary table explicitly shows remap for cms and framework"}
+      ],
+      "notes": ["Structured output — immediate, clear summary without needing to read source files"]
+    },
+    {
+      "eval_id": 1,
+      "eval_name": "Basic Build (tạo file update cơ bản)",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 4,
+        "failed": 0,
+        "total": 4,
+        "time_seconds": 47.7,
+        "tokens": 25521,
+        "tool_calls": 7,
+        "errors": 0
+      },
+      "expectations": [
+        {"text": "Chạy git diff --name-only HEAD trước khi build", "passed": true, "evidence": "Mentions git diff after reading build-update.php source. Discovery required reading source file."},
+        {"text": "Thực thi php tool/build-update.php", "passed": true, "evidence": "Correctly identified the command after reading tool/build-update.php"},
+        {"text": "Báo đường dẫn ZIP tại tool/releases/", "passed": true, "evidence": "Shows tool/releases/update-8.0.1.zip"},
+        {"text": "Đề cập path remap packages/ → vendor/", "passed": true, "evidence": "Mentions remap after reading source. Used extra tool calls to discover this."}
+      ],
+      "notes": ["Had to explore project files to discover workflow — read tool/build-update.php to find the right approach"]
+    },
+    {
+      "eval_id": 2,
+      "eval_name": "Staged-Only Flag (--staged-only)",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 2,
+        "failed": 0,
+        "total": 2,
+        "time_seconds": 47.6,
+        "tokens": 22008,
+        "tool_calls": 6,
+        "errors": 0
+      },
+      "expectations": [
+        {"text": "Chạy php tool/build-update.php --staged-only", "passed": true, "evidence": "Command shown correctly: 'php tool/build-update.php --staged-only'"},
+        {"text": "Flag --staged-only không bị bỏ qua", "passed": true, "evidence": "Correctly detects no staged files and warns user, then still shows correct command with flag"}
+      ],
+      "notes": ["Bonus: correctly detects empty staged area and suggests git add first"]
+    },
+    {
+      "eval_id": 2,
+      "eval_name": "Staged-Only Flag (--staged-only)",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 2,
+        "failed": 0,
+        "total": 2,
+        "time_seconds": 60.5,
+        "tokens": 24095,
+        "tool_calls": 8,
+        "errors": 0
+      },
+      "expectations": [
+        {"text": "Chạy php tool/build-update.php --staged-only", "passed": true, "evidence": "Command shown: 'php tool/build-update.php --staged-only'"},
+        {"text": "Flag --staged-only không bị bỏ qua", "passed": true, "evidence": "Flag preserved. Also detected empty staging area."}
+      ],
+      "notes": ["Good response but required reading tool/build-update.php to discover flag support (line 9, 51 referenced)"]
+    },
+    {
+      "eval_id": 3,
+      "eval_name": "Web UI Request (không muốn dùng terminal)",
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 3,
+        "failed": 0,
+        "total": 3,
+        "time_seconds": 29.5,
+        "tokens": 21052,
+        "tool_calls": 4,
+        "errors": 0
+      },
+      "expectations": [
+        {"text": "Cung cấp URL http://localhost/tool/build-update-ui.php", "passed": true, "evidence": "URL provided directly"},
+        {"text": "Không chạy php CLI", "passed": true, "evidence": "No CLI commands run — only 4 tool calls total (read skill, write output)"},
+        {"text": "Mô tả cách dùng web UI", "passed": true, "evidence": "Describes: file list left panel, Build button, Download ZIP button"}
+      ],
+      "notes": ["Fastest response: 29.5s, 21k tokens, only 4 tool calls. Matched 'Web UI' section immediately."]
+    },
+    {
+      "eval_id": 3,
+      "eval_name": "Web UI Request (không muốn dùng terminal)",
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 3,
+        "failed": 0,
+        "total": 3,
+        "time_seconds": 46.5,
+        "tokens": 36131,
+        "tool_calls": 8,
+        "errors": 0
+      },
+      "expectations": [
+        {"text": "Cung cấp URL http://localhost/tool/build-update-ui.php", "passed": true, "evidence": "URL found after reading the 710-line build-update-ui.php file"},
+        {"text": "Không chạy php CLI", "passed": true, "evidence": "No CLI commands run"},
+        {"text": "Mô tả cách dùng web UI", "passed": true, "evidence": "Very detailed description — actually described more UI features than with_skill. But cost 36k tokens vs 21k."}
+      ],
+      "notes": ["Had to read full 710-line UI file to answer — 72% more tokens than with_skill (36k vs 21k)"]
+    }
+  ],
+  "run_summary": {
+    "with_skill": {
+      "pass_rate": {"mean": 1.0, "stddev": 0.0, "min": 1.0, "max": 1.0},
+      "time_seconds": {"mean": 46.0, "stddev": 15.76, "min": 29.5, "max": 60.9},
+      "tokens": {"mean": 21878.7, "stddev": 770.1, "min": 21052, "max": 22576}
+    },
+    "without_skill": {
+      "pass_rate": {"mean": 1.0, "stddev": 0.0, "min": 1.0, "max": 1.0},
+      "time_seconds": {"mean": 51.57, "stddev": 7.76, "min": 46.5, "max": 60.5},
+      "tokens": {"mean": 28582.3, "stddev": 6576.1, "min": 24095, "max": 36131}
+    },
+    "delta": {
+      "pass_rate": "0.0",
+      "time_seconds": "-5.6",
+      "tokens": "-6704"
+    }
+  },
+  "notes": [
+    "Pass rate 100% for both — assertions are all met. The skill's value is in efficiency and consistency, not correctness alone.",
+    "Skill saves ~6700 tokens per run on average (23% fewer tokens) because the agent doesn't need to explore source files.",
+    "Skill is faster on average by ~5.6s, most pronounced in eval-3 (web UI) where baseline read a 710-line PHP file.",
+    "Eval-3 (web UI) shows the biggest skill advantage: 21k vs 36k tokens (72% more for baseline). Baseline had to read the full build-update-ui.php.",
+    "Eval-1 and Eval-2 pass equally for both — the assertions may not be discriminating enough for those cases. The skill adds structure and immediate clarity, but baseline can also discover the answers by reading source.",
+    "Recommendation: skill is solid for consistency and token efficiency. Could add assertions about response structure or 'no source file reading required' to better capture the skill's value."
+  ]
+}

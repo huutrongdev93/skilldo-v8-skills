@@ -1,0 +1,23 @@
+{
+  "skill_name": "build-update",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Tôi vừa sửa xong mấy file, giờ cần tạo file update để upload lên server.",
+      "expected_output": "Claude chạy git diff, đọc version, ghi manifest.json có trường built_from, tạo ZIP tại tool/releases/, báo kết quả.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "build update --staged-only",
+      "expected_output": "Claude dùng git diff --cached để chỉ lấy staged files, tạo ZIP với flag --staged-only.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "Tôi đã commit 3 lần từ lần build update trước, giờ muốn build lại gom tất cả file thay đổi từ đó.",
+      "expected_output": "Claude đọc built_from từ manifest.json, chạy git diff <built_from>..HEAD để lấy tất cả file đã commit kể từ lần build trước, gộp với uncommitted, tạo ZIP.",
+      "files": []
+    }
+  ]
+}

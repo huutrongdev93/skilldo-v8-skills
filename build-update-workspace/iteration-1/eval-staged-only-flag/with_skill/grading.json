@@ -1,0 +1,17 @@
+{
+  "eval_id": 2,
+  "run": "with_skill",
+  "expectations": [
+    {
+      "text": "Chạy php tool/build-update.php với flag --staged-only",
+      "passed": true,
+      "evidence": "Response shows 'php tool/build-update.php --staged-only' in both the analysis section and the proposed command"
+    },
+    {
+      "text": "Không được bỏ qua flag --staged-only — phải có trong lệnh thực thi",
+      "passed": true,
+      "evidence": "Flag --staged-only is present in the command: 'php tool/build-update.php --staged-only'. Also correctly detects that no files are staged and warns the user."
+    }
+  ],
+  "pass_rate": 1.0
+}

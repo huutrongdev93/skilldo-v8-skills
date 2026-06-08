@@ -1,0 +1,27 @@
+{
+  "eval_id": 1,
+  "run": "without_skill",
+  "expectations": [
+    {
+      "text": "Chạy git diff --name-only HEAD (hoặc tương đương) để kiểm tra file thay đổi trước khi build",
+      "passed": true,
+      "evidence": "Agent ran git status and mentions 'git diff --name-only HEAD' after reading build-update.php. However, needed to READ the source script first to know what to do — discovery by file exploration, not prior knowledge."
+    },
+    {
+      "text": "Thực thi lệnh php tool/build-update.php",
+      "passed": true,
+      "evidence": "'php tool/build-update.php' mentioned as the command to run"
+    },
+    {
+      "text": "Báo đường dẫn ZIP tại tool/releases/ trong kết quả",
+      "passed": true,
+      "evidence": "Shows 'tool/releases/update-8.0.1.zip'"
+    },
+    {
+      "text": "Đề cập path remap: packages/skilldo/ → vendor/skilldo/ trong ZIP",
+      "passed": true,
+      "evidence": "Mentions path remap after reading the build script. Took 7 tool calls to discover this vs with_skill 8 calls (similar, but baseline spent calls reading source files)"
+    }
+  ],
+  "pass_rate": 1.0
+}

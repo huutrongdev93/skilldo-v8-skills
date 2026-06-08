@@ -1,0 +1,32 @@
+TASK: Người dùng nói: "Tôi muốn dùng giao diện web để build update, không muốn dùng terminal"
+
+SKILL LOADED: build-update (E:\GoogleDriverData\projects\source.5.x\sourcev8\.claude\skills\build-update\SKILL.md)
+
+---
+
+SKILL SECTION MATCHED:
+Mục "Người dùng muốn dùng Web UI" trong SKILL.md:
+  Khi họ hỏi "dùng web UI", "mở giao diện build", hoặc "không muốn dùng terminal"
+
+---
+
+RESPONSE GIVEN TO USER:
+
+Theo hướng dẫn trong skill, khi người dùng không muốn dùng terminal và muốn dùng giao diện web, câu trả lời rất đơn giản:
+
+Mở trình duyệt và truy cập: http://localhost/tool/build-update-ui.php
+
+Giao diện web sẽ hiển thị:
+- Danh sách các file đã thay đổi ở bên trái
+- Nút Build để bắt đầu đóng gói
+- Sau khi build xong, sẽ có nút Download ZIP để tải file về máy
+
+Không cần dùng terminal hay lệnh nào cả.
+
+---
+
+ACTIONS TAKEN:
+- Đọc SKILL.md để tìm hướng dẫn xử lý tình huống "Người dùng muốn dùng Web UI"
+- Trả lời người dùng với URL http://localhost/tool/build-update-ui.php
+- Không chạy bất kỳ lệnh build nào (đây là yêu cầu thông tin, không phải yêu cầu build)
+- Lưu transcript vào file này

@@ -1,0 +1,77 @@
+== BUILD UPDATE PACKAGE — SkillDo CMS v8 ==
+
+=== Buoc 1: Kiem tra trang thai thay doi ===
+
+Phien ban CMS hien tai: 8.0.1
+
+Danh sach file thay doi (git diff --name-only HEAD):
+
+  Packages/CMS (se duoc remap → vendor/skilldo/cms/ trong ZIP):
+    - packages/skilldo/cms/src/Http/Middleware/RedirectIfAuthenticated.php
+    - packages/skilldo/cms/src/Loader.php
+    - packages/skilldo/cms/src/Menu/ThemeMenu.php
+    - packages/skilldo/cms/src/Models/ThemeMenuItem.php
+    - packages/skilldo/cms/src/Providers/SystemServiceProvider.php
+    - packages/skilldo/cms/src/config/cms.php
+
+  Packages/Framework (se duoc remap → vendor/skilldo/framework/ trong ZIP):
+    - packages/skilldo/framework/src/Cache/Drivers/CacheFile.php
+    - packages/skilldo/framework/src/Http/Middlewares/VerifyCsrfToken.php
+    - packages/skilldo/framework/src/config/csrf.php
+
+  App/Views (giu nguyen duong dan trong ZIP):
+    - app/Controllers/Admin/AjaxController.php
+    - views/admin/app/Ajax/TableAjax.php
+    - views/admin/app/Modules/User/Table.php
+    - views/admin/app/Popovers/UserPopover.php
+    - views/admin/assets/js/element-builder-review.bundle.js
+    - views/admin/assets/js/script.bundle.js
+
+Tong: 15 file thay doi
+Staged: 0 file (khong co file nao duoc staged)
+
+Tom tat:
+  - Phien ban dong goi  : 8.0.1
+  - Tong file thay doi  : 15
+  - File CMS package    : 6  (remap: packages/skilldo/cms/ → vendor/skilldo/cms/)
+  - File Framework pkg  : 3  (remap: packages/skilldo/framework/ → vendor/skilldo/framework/)
+  - File app/views      : 6  (giu nguyen cau truc)
+  - Staged only         : khong
+  - Output ZIP          : tool/releases/update-8.0.1.zip
+
+=== Buoc 2: Chay build script ===
+
+Lenh se thuc hien:
+  php tool/build-update.php
+
+(Simulation — khong thuc su chay lenh de tranh thay doi file)
+
+Neu chay that, script se:
+  1. Doc danh sach file tu `git diff --name-only HEAD`
+  2. Cap nhat manifest.json voi danh sach file va version 8.0.1
+  3. Remap cac duong dan:
+       packages/skilldo/cms/src/... → vendor/skilldo/cms/src/...
+       packages/skilldo/framework/src/... → vendor/skilldo/framework/src/...
+  4. Tim file encoded tai E:/Source-Sikido/source-v8/sourcev8/ (neu co)
+  5. Nen tat ca vao tool/releases/update-8.0.1.zip
+  6. In ra danh sach file da duoc them vao ZIP
+  7. In ra cac file "missing" neu khong tim thay ban encoded
+
+=== Buoc 3: Ket qua du kien ===
+
+  File ZIP se duoc tao tai : tool/releases/update-8.0.1.zip
+  manifest.json            : se duoc cap nhat tu dong truoc khi tao ZIP
+  Ghi de file cu           : neu update-8.0.1.zip da ton tai, se bi ghi de
+
+Neu gap loi "missing files":
+  - Kiem tra xem thu muc encoded co san chua:
+    E:/Source-Sikido/source-v8/sourcev8/
+  - Neu chua co, goi y dung Web UI:
+    http://localhost/tool/build-update-ui.php
+
+De chay build that su, chay lenh sau trong PowerShell:
+  cd E:\GoogleDriverData\projects\source.5.x\sourcev8
+  php tool/build-update.php
+
+Hoac mo giao dien web de build va download ZIP:
+  http://localhost/tool/build-update-ui.php
